@@ -1,0 +1,32 @@
+[
+  {
+    "id": "a1d5f78e-32c7-4f9e-93e8-7c2a6f3bdf2d",
+    "firstName": "Daniel",
+    "lastName": "Baker",
+    "username": "daniel.baker",
+    "password": "G3f9X1zYpq",
+    "isActive": true,
+    "dateOfBirth": "1995-08-15",
+    "address": "123 Main Street, New York, USA"
+  },
+  {
+    "id": "b4e7a9c2-1f68-40e4-bc91-df9c3d37e6d0",
+    "firstName": "Sophia",
+    "lastName": "Evans",
+    "username": "sophia.evans",
+    "password": "K2mW8aZxRp",
+    "isActive": true,
+    "dateOfBirth": "1998-04-22",
+    "address": "456 Oak Avenue, London, UK"
+  },
+  {
+    "id": "f3c92e58-7b44-4d64-9a3d-59a2d8e1b5a7",
+    "firstName": "Liam",
+    "lastName": "Turner",
+    "username": "liam.turner",
+    "password": "J9tL7qX5Mv",
+    "isActive": false,
+    "dateOfBirth": "2000-12-10",
+    "address": "789 Pine Road, Sydney, Australia"
+  }
+]
