@@ -6,9 +6,7 @@
     "username": "ethan.walker",
     "password": "X9mW7pLtZq",
     "isActive": true,
-    "specialization": {
-      "name": "Cardio"
-    }
+    "specialization": "CARDIO"
   },
   {
     "id": "d7a2b349-6c4a-48b5-98f0-51e8c7d6c45b",
@@ -17,9 +15,7 @@
     "username": "olivia.taylor",
     "password": "Q3tY8kVzLp",
     "isActive": true,
-    "specialization": {
-      "name": "Strength Training"
-    }
+    "specialization": "STRENGTH"
   },
   {
     "id": "e1b5c784-9a3d-4d7b-8024-2f9c56d4a2d9",
@@ -28,8 +24,6 @@
     "username": "benjamin.miller",
     "password": "M2xT5pLzKq",
     "isActive": false,
-    "specialization": {
-      "name": "Yoga"
-    }
+    "specialization": "YOGA"
   }
 ]
