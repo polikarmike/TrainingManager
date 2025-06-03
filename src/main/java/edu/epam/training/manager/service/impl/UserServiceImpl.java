@@ -15,6 +15,7 @@ public class UserServiceImpl implements UserService {
     private TraineeDao traineeDAO;
     private UsernameGenerator usernameGenerator;
 
+    @Override
     public String generateUniqueUsername(String firstName, String lastName) {
         return usernameGenerator.generateCandidates(firstName, lastName)
                 .filter(this::isUsernameUnique)
