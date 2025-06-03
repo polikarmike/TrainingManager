@@ -25,39 +25,39 @@ public class GymFacade {
     }
 
     public Trainee registerTrainee(Trainee newTrainee) {
-        return traineeService.createProfile(newTrainee);
+        return traineeService.create(newTrainee);
     }
 
     public Trainee updateTrainee(Trainee traineeUpdate) {
-        return traineeService.updateProfile(traineeUpdate);
+        return traineeService.update(traineeUpdate);
     }
 
     public void deleteTrainee(UUID id) {
-        traineeService.deleteProfile(id);
+        traineeService.delete(id);
     }
 
     public Trainee getTrainee(UUID id) {
-        return traineeService.getProfile(id);
+        return traineeService.select(id);
     }
 
     public Trainer registerTrainer(Trainer trainer) {
-        return trainerService.createProfile(trainer);
+        return trainerService.create(trainer);
     }
 
     public Trainer updateTrainer(Trainer trainerUpdate) {
-        return trainerService.updateProfile(trainerUpdate);
+        return trainerService.update(trainerUpdate);
     }
 
     public Trainer getTrainer(UUID id) {
-        return trainerService.getProfile(id);
+        return trainerService.select(id);
     }
 
     public Training registerTraining(Training training) {
-        return trainingService.createTraining(training);
+        return trainingService.create(training);
     }
 
     public Training getTraining(UUID id) {
-        return trainingService.getTraining(id);
+        return trainingService.select(id);
     }
 }
 

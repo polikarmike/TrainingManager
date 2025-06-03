@@ -1,5 +1,5 @@
 package edu.epam.training.manager.storage.common;
 
-public interface SelectableByUsername<T> {
+public interface StorageSelectableByUsername<T> {
     T findByUsername(String username);
 }

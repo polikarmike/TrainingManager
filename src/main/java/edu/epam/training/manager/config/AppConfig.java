@@ -28,7 +28,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
-
 @Configuration
 @ComponentScan("edu.epam.training.manager")
 @PropertySource("classpath:application.properties")
@@ -166,8 +165,6 @@ public class AppConfig {
         service.setTrainerServiceImpl(trainerServiceImpl);
         return service;
     }
-
-
 
     @Bean
     public GymFacade gymFacade(

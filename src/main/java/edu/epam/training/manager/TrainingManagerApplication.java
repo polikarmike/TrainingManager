@@ -26,11 +26,11 @@ public class TrainingManagerApplication {
             Trainee fetchedTrainee = gymFacade.getTrainee(traineeId);
             logger.info("Fetched Trainee: {}", fetchedTrainee);
 
-                Trainer newTrainer = Trainer.builder()
-                    .firstName("Chloe")
-                    .lastName("White")
-                    .specialization(TrainingType.YOGA)
-                    .build();
+            Trainer newTrainer = Trainer.builder()
+                .firstName("Chloe")
+                .lastName("White")
+                .specialization(TrainingType.YOGA)
+                .build();
             Trainer registeredTrainer = gymFacade.registerTrainer(newTrainer);
             logger.info("Registered Trainer: {}", registeredTrainer);
 

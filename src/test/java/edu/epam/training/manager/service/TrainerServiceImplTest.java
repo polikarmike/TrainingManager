@@ -59,7 +59,7 @@ class TrainerServiceImplTest {
         when(userService.generateUniqueUsername("Laura", "Croft")).thenReturn("lauracroft");
         when(passwordGenerator.generate()).thenReturn("securePass");
         ArgumentCaptor<Trainer> captor = ArgumentCaptor.forClass(Trainer.class);
-        Trainer created = trainerService.createProfile(input);
+        Trainer created = trainerService.create(input);
         assertNotNull(created.getId());
         assertEquals("Laura", created.getFirstName());
         assertEquals("Croft", created.getLastName());
@@ -73,22 +73,22 @@ class TrainerServiceImplTest {
     }
 
     @Test
-    void testGetProfileFound() {
+    void testSelectFound() {
         UUID id = sampleTrainer.getId();
         when(trainerDao.findById(id)).thenReturn(Optional.of(sampleTrainer));
-        Trainer result = trainerService.getProfile(id);
+        Trainer result = trainerService.select(id);
         assertEquals(sampleTrainer, result);
     }
 
     @Test
-    void testGetProfileNotFound() {
+    void testSelectNotFound() {
         UUID id = UUID.randomUUID();
         when(trainerDao.findById(id)).thenReturn(Optional.empty());
-        assertThrows(IllegalArgumentException.class, () -> trainerService.getProfile(id));
+        assertThrows(IllegalArgumentException.class, () -> trainerService.select(id));
     }
 
     @Test
-    void testUpdateProfile() {
+    void testUpdate() {
         UUID id = sampleTrainer.getId();
         Trainer update = Trainer.builder()
                 .id(id)
@@ -109,7 +109,7 @@ class TrainerServiceImplTest {
                 .build();
         doNothing().when(trainerDao).update(any());
         when(trainerDao.findById(id)).thenReturn(Optional.of(merged));
-        Trainer result = trainerService.updateProfile(update);
+        Trainer result = trainerService.update(update);
         assertEquals("Marcus", result.getFirstName());
         assertEquals("Payne", result.getLastName());
         assertEquals("maxpayne", result.getUsername());

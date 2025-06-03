@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class AbstractStorage<T extends BaseEntity> implements
         BaseStorage<T> {
 
-    protected final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected final Map<UUID, T> storage = new ConcurrentHashMap<>();
     protected JsonDataLoader jsonDataLoader;

@@ -1,67 +1,59 @@
-//package edu.epam.training.manager.utils;
-//
-//import edu.epam.training.manager.utils.generation.UsernameGenerator;
-//import org.junit.jupiter.api.Test;
-//
-//import java.util.Set;
-//import java.util.function.Predicate;
-//
-//import static org.junit.jupiter.api.Assertions.*;
-//
-//class UsernameGeneratorTest {
-//
-//    private final UsernameGenerator generator = new UsernameGenerator();
-//
-//    @Test
-//    void generate_WhenUsernameDoesNotExist_ShouldReturnBaseUsername() {
-//        Predicate<String> existsChecker = username -> false;
-//        String username = generator.generate("John", "Doe", existsChecker);
-//        assertEquals("John.Doe", username);
-//    }
-//
-//    @Test
-//    void generate_WhenUsernameExistsOnce_ShouldAppendCounterOne() {
-//        Predicate<String> existsChecker = new Predicate<>() {
-//            private int callCount = 0;
-//            @Override
-//            public boolean test(String username) {
-//                callCount++;
-//                return "John.Doe".equals(username) && callCount == 1;
-//            }
-//        };
-//
-//        String username = generator.generate("John", "Doe", existsChecker);
-//        assertEquals("John.Doe1", username);
-//    }
-//
-//    @Test
-//    void generate_WhenUsernameExistsMultipleTimes_ShouldIncrementUntilFree() {
-//        Set<String> taken = Set.of("john.doe", "john.doe1", "john.doe2");
-//        Predicate<String> existsChecker = taken::contains;
-//
-//        String username = generator.generate(" john ", " doe ", existsChecker);
-//        assertEquals("john.doe3", username);
-//    }
-//
-//    @Test
-//    void generate_WithWhitespaceInNames_ShouldTrimAndRemoveAllInternalSpaces() {
-//        Predicate<String> existsChecker = username -> false;
-//        String username = generator.generate("  Mi chael  ", "  Jo hn  ", existsChecker);
-//        assertEquals("Michael.John", username);
-//    }
-//
-//    @Test
-//    void generate_WhenLastNameEmpty_ShouldProduceFirstNameWithDotOnly() {
-//        Predicate<String> existsChecker = username -> false;
-//        String username = generator.generate("Alice", "   ", existsChecker);
-//        assertEquals("Alice.", username);
-//    }
-//
-//    @Test
-//    void generate_WhenFirstNameEmpty_ShouldProduceDotAndLastNameOnly() {
-//        Predicate<String> existsChecker = username -> false;
-//        String username = generator.generate("   ", "Smith", existsChecker);
-//        assertEquals(".Smith", username);
-//    }
-//}
-//
+package edu.epam.training.manager.utils;
+
+import edu.epam.training.manager.utils.generation.UsernameGenerator;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class UsernameGeneratorTest {
+
+    private final UsernameGenerator generator = new UsernameGenerator();
+
+    @Test
+    void firstCandidate_ShouldBeBaseUsername() {
+        String firstName = "John";
+        String lastName = "Doe";
+        Stream<String> candidates = generator.generateCandidates(firstName, lastName);
+        String firstCandidate = candidates.findFirst().orElse("");
+        assertEquals("John.Doe", firstCandidate);
+    }
+
+    @Test
+    void generateCandidates_ShouldTrimAndRemoveExtraSpaces() {
+        String firstName = "  Alice  ";
+        String lastName = "  Smith   ";
+        String candidate = generator.generateCandidates(firstName, lastName)
+                .findFirst()
+                .orElse("");
+        assertEquals("Alice.Smith", candidate);
+    }
+
+    @Test
+    void candidateSequence_ShouldIncrementSuffixCorrectly() {
+        String firstName = "Bob";
+        String lastName = "Marley";
+        List<String> candidates = generator.generateCandidates(firstName, lastName)
+                .limit(5)
+                .toList();
+        assertEquals("Bob.Marley", candidates.get(0));
+        assertEquals("Bob.Marley1", candidates.get(1));
+        assertEquals("Bob.Marley2", candidates.get(2));
+        assertEquals("Bob.Marley3", candidates.get(3));
+        assertEquals("Bob.Marley4", candidates.get(4));
+    }
+
+    @Test
+    void multipleCandidates_AreGeneratedContinuously() {
+        String firstName = "Carol";
+        String lastName = "Danvers";
+        List<String> candidates = generator.generateCandidates(firstName, lastName)
+                .limit(3)
+                .toList();
+        assertEquals("Carol.Danvers", candidates.get(0));
+        assertEquals("Carol.Danvers1", candidates.get(1));
+        assertEquals("Carol.Danvers2", candidates.get(2));
+    }
+}

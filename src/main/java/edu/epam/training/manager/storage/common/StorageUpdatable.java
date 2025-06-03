@@ -1,5 +1,5 @@
 package edu.epam.training.manager.storage.common;
 
-public interface Updatable<T> {
+public interface StorageUpdatable<T> {
     void update(T item);
 }

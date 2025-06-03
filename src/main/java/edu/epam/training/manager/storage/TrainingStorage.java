@@ -1,9 +1,9 @@
 package edu.epam.training.manager.storage;
 
 import edu.epam.training.manager.domain.Training;
-import edu.epam.training.manager.storage.common.Creatable;
-import edu.epam.training.manager.storage.common.Selectable;
+import edu.epam.training.manager.storage.common.StorageCreatable;
+import edu.epam.training.manager.storage.common.StorageSelectable;
 
 public interface TrainingStorage
-        extends Creatable<Training>,
-        Selectable<Training> { }
+        extends StorageCreatable<Training>,
+        StorageSelectable<Training> { }

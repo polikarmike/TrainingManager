@@ -1,6 +1,5 @@
 package edu.epam.training.manager.utils.generation;
 
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class UsernameGenerator {

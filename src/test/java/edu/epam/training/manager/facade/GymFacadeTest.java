@@ -46,12 +46,12 @@ public class GymFacadeTest {
                 .address("123 Main St")
                 .build();
 
-        when(traineeService.createProfile(newTrainee)).thenReturn(newTrainee);
+        when(traineeService.create(newTrainee)).thenReturn(newTrainee);
 
         Trainee result = gymFacade.registerTrainee(newTrainee);
 
         assertEquals(newTrainee, result);
-        verify(traineeService).createProfile(newTrainee);
+        verify(traineeService).create(newTrainee);
     }
 
     @Test
@@ -66,12 +66,12 @@ public class GymFacadeTest {
                 .specialization(TrainingType.YOGA)
                 .build();
 
-        when(trainerService.updateProfile(trainer)).thenReturn(trainer);
+        when(trainerService.update(trainer)).thenReturn(trainer);
 
         Trainer updated = gymFacade.updateTrainer(trainer);
 
         assertEquals(trainer, updated);
-        verify(trainerService).updateProfile(trainer);
+        verify(trainerService).update(trainer);
     }
 
     @Test
@@ -80,7 +80,7 @@ public class GymFacadeTest {
 
         gymFacade.deleteTrainee(id);
 
-        verify(traineeService).deleteProfile(id);
+        verify(traineeService).delete(id);
     }
 
     @Test
@@ -97,12 +97,115 @@ public class GymFacadeTest {
                 .trainingDuration(Duration.ofMinutes(45))
                 .build();
 
-        when(trainingService.getTraining(trainingId)).thenReturn(training);
+        when(trainingService.select(trainingId)).thenReturn(training);
 
         Training result = gymFacade.getTraining(trainingId);
 
         assertEquals(training, result);
-        verify(trainingService).getTraining(trainingId);
+        verify(trainingService).select(trainingId);
+    }
+
+    @Test
+    void updateTrainee_shouldDelegateToTraineeService() {
+        Trainee traineeUpdate = Trainee.builder()
+                .id(UUID.randomUUID())
+                .firstName("Jane")
+                .lastName("Doe")
+                .username("janeDoe")
+                .password("password")
+                .isActive(true)
+                .dateOfBirth(LocalDate.of(1992, 5, 12))
+                .address("456 Main St")
+                .build();
+        when(traineeService.update(traineeUpdate)).thenReturn(traineeUpdate);
+
+        Trainee result = gymFacade.updateTrainee(traineeUpdate);
+
+        assertEquals(traineeUpdate, result);
+        verify(traineeService).update(traineeUpdate);
+    }
+
+    @Test
+    void getTrainee_shouldReturnTraineeFromService() {
+        UUID traineeId = UUID.randomUUID();
+        Trainee trainee = Trainee.builder()
+                .id(traineeId)
+                .firstName("Jane")
+                .lastName("Doe")
+                .username("janeDoe")
+                .password("password")
+                .isActive(true)
+                .dateOfBirth(LocalDate.of(1992, 5, 12))
+                .address("456 Main St")
+                .build();
+        when(traineeService.select(traineeId)).thenReturn(trainee);
+
+        Trainee result = gymFacade.getTrainee(traineeId);
+
+        assertEquals(trainee, result);
+        verify(traineeService).select(traineeId);
+    }
+
+    @Test
+    void registerTrainer_shouldDelegateToTrainerService() {
+        Trainer trainer = Trainer.builder()
+                .id(UUID.randomUUID())
+                .firstName("Anna")
+                .lastName("Smith")
+                .username("asmith")
+                .password("pass123")
+                .isActive(true)
+                .specialization(TrainingType.YOGA)
+                .build();
+        when(trainerService.create(trainer)).thenReturn(trainer);
+
+        Trainer result = gymFacade.registerTrainer(trainer);
+
+        assertEquals(trainer, result);
+        verify(trainerService).create(trainer);
+    }
+
+    @Test
+    void getTrainer_shouldReturnTrainerFromService() {
+        // Arrange
+        UUID trainerId = UUID.randomUUID();
+        Trainer trainer = Trainer.builder()
+                .id(trainerId)
+                .firstName("Anna")
+                .lastName("Smith")
+                .username("asmith")
+                .password("pass123")
+                .isActive(true)
+                .specialization(TrainingType.YOGA)
+                .build();
+        when(trainerService.select(trainerId)).thenReturn(trainer);
+
+        Trainer result = gymFacade.getTrainer(trainerId);
+
+        assertEquals(trainer, result);
+        verify(trainerService).select(trainerId);
+    }
+
+    @Test
+    void registerTraining_shouldDelegateToTrainingService() {
+        UUID trainingId = UUID.randomUUID();
+        UUID trainerId = UUID.randomUUID();
+        UUID traineeId = UUID.randomUUID();
+        Training training = Training.builder()
+                .id(trainingId)
+                .trainingName("Evening Pilates")
+                .trainingType(TrainingType.PILATES)
+                .trainerId(trainerId)
+                .traineeId(traineeId)
+                .trainingDate(LocalDate.now())
+                .trainingDuration(Duration.ofMinutes(60))
+                .build();
+        when(trainingService.create(training)).thenReturn(training);
+
+        Training result = gymFacade.registerTraining(training);
+
+        assertEquals(training, result);
+        verify(trainingService).create(training);
     }
 
 }

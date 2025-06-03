@@ -77,11 +77,11 @@ class TrainingServiceImplTest {
                 .trainingDate(LocalDate.of(2025, 6, 10))
                 .build();
 
-        when(traineeServiceImpl.getProfile(traineeId)).thenReturn(sampleTrainee);
-        when(trainerServiceImpl.getProfile(trainerId)).thenReturn(sampleTrainer);
+        when(traineeServiceImpl.select(traineeId)).thenReturn(sampleTrainee);
+        when(trainerServiceImpl.select(trainerId)).thenReturn(sampleTrainer);
 
         ArgumentCaptor<Training> captor = ArgumentCaptor.forClass(Training.class);
-        Training created = trainingService.createTraining(input);
+        Training created = trainingService.create(input);
 
         assertNotNull(created.getId());
         assertEquals("Morning Cardio", created.getTrainingName());
@@ -108,9 +108,9 @@ class TrainingServiceImplTest {
                 .trainingDate(LocalDate.now())
                 .build();
 
-        when(traineeServiceImpl.getProfile(traineeId)).thenThrow(new IllegalArgumentException("Trainee not found"));
+        when(traineeServiceImpl.select(traineeId)).thenThrow(new IllegalArgumentException("Trainee not found"));
 
-        assertThrows(IllegalArgumentException.class, () -> trainingService.createTraining(input));
+        assertThrows(IllegalArgumentException.class, () -> trainingService.create(input));
         verify(trainingDao, never()).create(any());
     }
 
@@ -126,10 +126,10 @@ class TrainingServiceImplTest {
                 .trainingDate(LocalDate.now())
                 .build();
 
-        when(traineeServiceImpl.getProfile(traineeId)).thenReturn(sampleTrainee);
-        when(trainerServiceImpl.getProfile(trainerId)).thenThrow(new IllegalArgumentException("Trainer not found"));
+        when(traineeServiceImpl.select(traineeId)).thenReturn(sampleTrainee);
+        when(trainerServiceImpl.select(trainerId)).thenThrow(new IllegalArgumentException("Trainer not found"));
 
-        assertThrows(IllegalArgumentException.class, () -> trainingService.createTraining(input));
+        assertThrows(IllegalArgumentException.class, () -> trainingService.create(input));
         verify(trainingDao, never()).create(any());
     }
 
@@ -146,7 +146,7 @@ class TrainingServiceImplTest {
                 .build();
 
         when(trainingDao.findById(trainingId)).thenReturn(Optional.of(sampleTraining));
-        Training result = trainingService.getTraining(trainingId);
+        Training result = trainingService.select(trainingId);
         assertEquals(sampleTraining, result);
     }
 
@@ -154,6 +154,6 @@ class TrainingServiceImplTest {
     void testGetTrainingNotFound() {
         UUID trainingId = UUID.randomUUID();
         when(trainingDao.findById(trainingId)).thenReturn(Optional.empty());
-        assertThrows(IllegalArgumentException.class, () -> trainingService.getTraining(trainingId));
+        assertThrows(IllegalArgumentException.class, () -> trainingService.select(trainingId));
     }
 }

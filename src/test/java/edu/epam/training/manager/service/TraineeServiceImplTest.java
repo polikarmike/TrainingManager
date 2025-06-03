@@ -51,7 +51,7 @@ class TraineeServiceImplTest {
     }
 
     @Test
-    void testCreateProfile() {
+    void testCreate() {
         Trainee input = Trainee.builder()
                 .firstName("Alice")
                 .lastName("Smith")
@@ -61,7 +61,7 @@ class TraineeServiceImplTest {
         when(userService.generateUniqueUsername("Alice", "Smith")).thenReturn("alicesmith");
         when(passwordGenerator.generate()).thenReturn("pw1234");
         ArgumentCaptor<Trainee> captor = ArgumentCaptor.forClass(Trainee.class);
-        Trainee created = traineeService.createProfile(input);
+        Trainee created = traineeService.create(input);
         assertNotNull(created.getId());
         assertEquals("Alice", created.getFirstName());
         assertEquals("Smith", created.getLastName());
@@ -77,22 +77,22 @@ class TraineeServiceImplTest {
     }
 
     @Test
-    void testGetProfileFound() {
+    void testSelectFound() {
         UUID id = sampleTrainee.getId();
         when(traineeDao.findById(id)).thenReturn(Optional.of(sampleTrainee));
-        Trainee result = traineeService.getProfile(id);
+        Trainee result = traineeService.select(id);
         assertEquals(sampleTrainee, result);
     }
 
     @Test
-    void testGetProfileNotFound() {
+    void testSelectNotFound() {
         UUID id = UUID.randomUUID();
         when(traineeDao.findById(id)).thenReturn(Optional.empty());
-        assertThrows(IllegalArgumentException.class, () -> traineeService.getProfile(id));
+        assertThrows(IllegalArgumentException.class, () -> traineeService.select(id));
     }
 
     @Test
-    void testUpdateProfile() {
+    void testUpdate() {
         UUID id = sampleTrainee.getId();
         Trainee update = Trainee.builder()
                 .id(id)
@@ -115,7 +115,7 @@ class TraineeServiceImplTest {
                 .build();
         doNothing().when(traineeDao).update(any());
         when(traineeDao.findById(id)).thenReturn(Optional.of(merged));
-        Trainee result = traineeService.updateProfile(update);
+        Trainee result = traineeService.update(update);
         assertEquals("Jane", result.getFirstName());
         assertEquals("Doe", result.getLastName());
         assertEquals(LocalDate.of(1990, 1, 1), result.getDateOfBirth());
@@ -127,10 +127,10 @@ class TraineeServiceImplTest {
     }
 
     @Test
-    void testDeleteProfile() {
+    void testDelete() {
         UUID id = UUID.randomUUID();
         doNothing().when(traineeDao).delete(id);
-        traineeService.deleteProfile(id);
+        traineeService.delete(id);
         verify(traineeDao, times(1)).delete(id);
     }
 }
