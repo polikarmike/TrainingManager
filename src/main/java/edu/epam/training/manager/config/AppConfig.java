@@ -2,13 +2,12 @@ package edu.epam.training.manager.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import edu.epam.training.manager.dao.impl.TraineeDAOImpl;
-import edu.epam.training.manager.dao.impl.TrainerDAOImpl;
+import edu.epam.training.manager.dao.impl.TraineeDaoImpl;
+import edu.epam.training.manager.dao.impl.TrainerDaoImpl;
 import edu.epam.training.manager.dao.impl.TrainingDAOImpl;
 import edu.epam.training.manager.domain.Trainee;
 import edu.epam.training.manager.domain.Trainer;
 import edu.epam.training.manager.domain.Training;
-import edu.epam.training.manager.facade.GymFacade;
 import edu.epam.training.manager.service.UserService;
 import edu.epam.training.manager.service.impl.TraineeServiceImpl;
 import edu.epam.training.manager.service.impl.TrainerServiceImpl;
@@ -20,8 +19,6 @@ import edu.epam.training.manager.storage.impl.TrainingStorageImpl;
 import edu.epam.training.manager.utils.data.JsonDataLoader;
 import edu.epam.training.manager.utils.generation.PasswordGenerator;
 import edu.epam.training.manager.utils.generation.UsernameGenerator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -32,30 +29,26 @@ import org.springframework.context.annotation.PropertySource;
 @ComponentScan("edu.epam.training.manager")
 @PropertySource("classpath:application.properties")
 public class AppConfig {
-    private static final Logger logger = LoggerFactory.getLogger(AppConfig.class);
 
     @Bean
-    public ObjectMapper objectMapper() {
-        logger.debug("Initializing ObjectMapper...");
+    public ObjectMapper getObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         return mapper;
     }
 
     @Bean
-    public JsonDataLoader jsonDataLoader() {
-        logger.debug("Creating JsonDataLoader bean...");
+    public JsonDataLoader getJsonDataLoader() {
         JsonDataLoader jsonDataLoader = new JsonDataLoader();
-        jsonDataLoader.setObjectMapper(objectMapper());
+        jsonDataLoader.setObjectMapper(getObjectMapper());
         return jsonDataLoader;
     }
 
     @Bean
-    public TraineeStorageImpl traineeStorage(
+    public TraineeStorageImpl getTraineeStorage(
             JsonDataLoader jsonDataLoader,
             @Value("${storage.trainees.path}") String path) {
 
-        logger.debug("Initializing TraineeStorage with path: {}", path);
         TraineeStorageImpl storage = new TraineeStorageImpl();
         storage.setJsonDataLoader(jsonDataLoader);
         storage.setInitFilePath(path);
@@ -64,11 +57,10 @@ public class AppConfig {
     }
 
     @Bean
-    public TrainerStorageImpl trainerStorage(
+    public TrainerStorageImpl getTrainerStorage(
             JsonDataLoader jsonDataLoader,
             @Value("${storage.trainers.path}") String path) {
 
-        logger.debug("Initializing TrainerStorage with path: {}", path);
         TrainerStorageImpl storage = new TrainerStorageImpl();
         storage.setJsonDataLoader(jsonDataLoader);
         storage.setInitFilePath(path);
@@ -77,11 +69,10 @@ public class AppConfig {
     }
 
     @Bean
-    public TrainingStorageImpl trainingStorage(
+    public TrainingStorageImpl getTrainingStorage(
             JsonDataLoader jsonDataLoader,
             @Value("${storage.trainings.path}") String path) {
 
-        logger.debug("Initializing TrainingStorage with path: {}", path);
         TrainingStorageImpl storage = new TrainingStorageImpl();
         storage.setJsonDataLoader(jsonDataLoader);
         storage.setInitFilePath(path);
@@ -90,54 +81,48 @@ public class AppConfig {
     }
 
     @Bean
-    public TraineeDAOImpl traineeDAO(TraineeStorageImpl traineeStorage) {
-        logger.debug("Creating TraineeDAOImpl bean...");
-        TraineeDAOImpl dao = new TraineeDAOImpl();
+    public TraineeDaoImpl getTraineeDAO(TraineeStorageImpl traineeStorage) {
+        TraineeDaoImpl dao = new TraineeDaoImpl();
         dao.setStorage(traineeStorage);
         return dao;
     }
 
     @Bean
-    public TrainerDAOImpl trainerDAO(TrainerStorageImpl trainerStorage) {
-        logger.debug("Creating TrainerDAOImpl bean...");
-        TrainerDAOImpl dao = new TrainerDAOImpl();
+    public TrainerDaoImpl getTrainerDAO(TrainerStorageImpl trainerStorage) {
+        TrainerDaoImpl dao = new TrainerDaoImpl();
         dao.setStorage(trainerStorage);
         return dao;
     }
 
     @Bean
-    public TrainingDAOImpl trainingDAO(TrainingStorageImpl trainingStorage) {
-        logger.debug("Creating TrainingDAOImpl bean...");
+    public TrainingDAOImpl getTrainingDAO(TrainingStorageImpl trainingStorage) {
         TrainingDAOImpl dao = new TrainingDAOImpl();
         dao.setStorage(trainingStorage);
         return dao;
     }
 
     @Bean
-    public UsernameGenerator usernameGenerator() {
-        logger.debug("Initializing UsernameGenerator...");
+    public UsernameGenerator getUsernameGenerator() {
         return new UsernameGenerator();
     }
 
     @Bean
-    public PasswordGenerator passwordGenerator() {
-        logger.debug("Initializing PasswordGenerator...");
+    public PasswordGenerator getPasswordGenerator() {
         return new PasswordGenerator();
     }
 
     @Bean
-    public UserServiceImpl userService() {
+    public UserServiceImpl getUserService() {
         UserServiceImpl userService = new UserServiceImpl();
-        userService.setUsernameGenerator(usernameGenerator());
+        userService.setUsernameGenerator(getUsernameGenerator());
         return userService;
     }
 
     @Bean
-    public TraineeServiceImpl traineeService(
+    public TraineeServiceImpl getTraineeService(
             PasswordGenerator passwordGenerator,
             UserService userService) {
 
-        logger.debug("Creating TraineeServiceImpl bean...");
         TraineeServiceImpl service = new TraineeServiceImpl();
         service.setPasswordGenerator(passwordGenerator);
         service.setUserService(userService);
@@ -145,11 +130,10 @@ public class AppConfig {
     }
 
     @Bean
-    public TrainerServiceImpl trainerService(
+    public TrainerServiceImpl getTrainerService(
             PasswordGenerator passwordGenerator,
             UserService userService) {
 
-        logger.debug("Creating TrainerServiceImpl bean...");
         TrainerServiceImpl service = new TrainerServiceImpl();
         service.setUserService(userService);
         service.setPasswordGenerator(passwordGenerator);
@@ -157,26 +141,11 @@ public class AppConfig {
     }
 
     @Bean
-    public TrainingServiceImpl trainingService(
+    public TrainingServiceImpl getTrainingService(
             TrainerServiceImpl trainerServiceImpl) {
 
-        logger.debug("Creating TrainingServiceImpl bean...");
         TrainingServiceImpl service = new TrainingServiceImpl();
-        service.setTrainerServiceImpl(trainerServiceImpl);
+        service.setTrainerService(trainerServiceImpl);
         return service;
-    }
-
-    @Bean
-    public GymFacade gymFacade(
-            TraineeServiceImpl traineeServiceImpl,
-            TrainerServiceImpl trainerServiceImpl,
-            TrainingServiceImpl trainingServiceImpl) {
-
-        logger.debug("Creating GymFacade bean...");
-        return new GymFacade(
-                traineeServiceImpl,
-                trainerServiceImpl,
-                trainingServiceImpl
-        );
     }
 }

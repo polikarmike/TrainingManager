@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
 class TraineeServiceImplTest {
 
     @Mock
-    private TraineeDao traineeDao;
+    private TraineeDao<Trainee, UUID> traineeDao;
 
     @Mock
     private UserService userService;
@@ -80,7 +80,7 @@ class TraineeServiceImplTest {
     void testSelectFound() {
         UUID id = sampleTrainee.getId();
         when(traineeDao.findById(id)).thenReturn(Optional.of(sampleTrainee));
-        Trainee result = traineeService.select(id);
+        Trainee result = traineeService.findById(id);
         assertEquals(sampleTrainee, result);
     }
 
@@ -88,7 +88,7 @@ class TraineeServiceImplTest {
     void testSelectNotFound() {
         UUID id = UUID.randomUUID();
         when(traineeDao.findById(id)).thenReturn(Optional.empty());
-        assertThrows(IllegalArgumentException.class, () -> traineeService.select(id));
+        assertThrows(IllegalArgumentException.class, () -> traineeService.findById(id));
     }
 
     @Test

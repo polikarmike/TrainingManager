@@ -1,11 +1,9 @@
 package edu.epam.training.manager.dao;
 
-import edu.epam.training.manager.dao.common.*;
-import edu.epam.training.manager.domain.Trainee;
+import edu.epam.training.manager.domain.base.UserEntity;
 
-public interface TraineeDao extends
-        DaoCreatable<Trainee>,
-        DaoUpdatable<Trainee>,
-        DaoDeletable<Trainee>,
-        DaoSelectable<Trainee>,
-        DaoSelectableByUsername<Trainee> { }
+import java.util.Optional;
+
+public interface TraineeDao<T extends UserEntity<ID>, ID> extends CrudDao<T, ID>{
+    Optional<T> findByUsername(String username);
+}

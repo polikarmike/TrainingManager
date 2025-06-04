@@ -1,8 +1,8 @@
 package edu.epam.training.manager.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.epam.training.manager.dao.impl.TraineeDAOImpl;
-import edu.epam.training.manager.dao.impl.TrainerDAOImpl;
+import edu.epam.training.manager.dao.impl.TraineeDaoImpl;
+import edu.epam.training.manager.dao.impl.TrainerDaoImpl;
 import edu.epam.training.manager.dao.impl.TrainingDAOImpl;
 import edu.epam.training.manager.facade.GymFacade;
 import edu.epam.training.manager.service.impl.TraineeServiceImpl;
@@ -50,12 +50,12 @@ class AppConfigTest {
 
     @Test
     void testTraineeDAOImplBean() {
-        assertNotNull(context.getBean(TraineeDAOImpl.class));
+        assertNotNull(context.getBean(TraineeDaoImpl.class));
     }
 
     @Test
     void testTrainerDAOImplBean() {
-        assertNotNull(context.getBean(TrainerDAOImpl.class));
+        assertNotNull(context.getBean(TrainerDaoImpl.class));
     }
 
     @Test

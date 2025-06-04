@@ -5,13 +5,14 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Trainee extends UserEntity {
+public class Trainee extends UserEntity<UUID> {
     private LocalDate dateOfBirth;
     private String address;
 
@@ -28,4 +29,3 @@ public class Trainee extends UserEntity {
                 '}';
     }
 }
-

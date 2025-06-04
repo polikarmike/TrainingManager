@@ -2,7 +2,7 @@ package edu.epam.training.manager.service.impl;
 
 import edu.epam.training.manager.dao.TraineeDao;
 import edu.epam.training.manager.domain.Trainee;
-import edu.epam.training.manager.service.TraineeService;
+import edu.epam.training.manager.service.CrudService;
 import edu.epam.training.manager.service.UserService;
 import edu.epam.training.manager.utils.generation.PasswordGenerator;
 
@@ -15,18 +15,18 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Setter
-public class TraineeServiceImpl implements TraineeService {
-    private static final Logger logger = LoggerFactory.getLogger(TraineeServiceImpl.class);
+public class TraineeServiceImpl implements CrudService<Trainee, UUID> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TraineeServiceImpl.class);
 
     @Autowired
-    private TraineeDao traineeDAO;
+    private TraineeDao<Trainee, UUID> traineeDAO;
 
     private UserService userService;
     private PasswordGenerator passwordGenerator;
 
     @Override
     public Trainee create(Trainee trainee) {
-        logger.debug("Starting trainee creation process for: {} {}", trainee.getFirstName(), trainee.getLastName());
+        LOGGER.debug("Starting trainee creation process for: {} {}", trainee.getFirstName(), trainee.getLastName());
 
         UUID id = UUID.randomUUID();
         String username = userService.generateUniqueUsername(trainee.getFirstName(), trainee.getLastName());
@@ -42,18 +42,18 @@ public class TraineeServiceImpl implements TraineeService {
                 .password(password)
                 .build();
 
-        logger.warn("Attempting to register trainee in DAO: {}", newTrainee);
         traineeDAO.create(newTrainee);
-        logger.debug("Trainee created successfully: {}", newTrainee);
+
+        LOGGER.debug("Trainee created successfully: {}", newTrainee);
 
         return newTrainee;
     }
 
     @Override
     public Trainee update(Trainee traineeUpdate) {
-        logger.debug("Starting trainee update process for ID: {}",traineeUpdate.getId());
+        LOGGER.debug("Starting trainee update process for ID: {}",traineeUpdate.getId());
 
-        Trainee existing = select(traineeUpdate.getId());
+        Trainee existing = findById(traineeUpdate.getId());
 
         Trainee updatedTrainee = Trainee.builder()
                 .id(existing.getId())
@@ -66,40 +66,38 @@ public class TraineeServiceImpl implements TraineeService {
                 .address(Optional.ofNullable(traineeUpdate.getAddress()).orElse(existing.getAddress()))
                 .build();
 
-        logger.warn("Attempting to update trainee in DAO with ID: {}", traineeUpdate.getId());
         traineeDAO.update(updatedTrainee);
 
         Trainee result = traineeDAO.findById(traineeUpdate.getId())
                 .orElseThrow(() -> {
-                    logger.error("Trainee with ID {} not found after update.", traineeUpdate.getId());
+                    LOGGER.error("Trainee with ID {} not found after update.", traineeUpdate.getId());
                     return new IllegalArgumentException("Trainee with ID " + traineeUpdate.getId() + " not found after update.");
                 });
 
-        logger.debug("Trainee updated successfully with ID: {}", traineeUpdate.getId());
+        LOGGER.debug("Trainee updated successfully with ID: {}", traineeUpdate.getId());
         return result;
     }
 
     @Override
     public void delete(UUID id) {
-        logger.debug("Initiating deletion process for trainee with ID: {}", id);
+        LOGGER.debug("Initiating deletion process for trainee with ID: {}", id);
 
         traineeDAO.delete(id);
 
-        logger.debug("Trainee with ID {} deleted successfully.", id);
+        LOGGER.debug("Trainee with ID {} deleted successfully.", id);
     }
 
     @Override
-    public Trainee select(UUID id) {
-        logger.debug("Initiating search for trainee with ID: {}", id);
+    public Trainee findById(UUID id) {
+        LOGGER.debug("Initiating search for trainee with ID: {}", id);
 
         Trainee trainee = traineeDAO.findById(id)
                 .orElseThrow(() -> {
-                    logger.error("Trainee with ID {} not found!", id);
+                    LOGGER.error("Trainee with ID {} not found!", id);
                     return new IllegalArgumentException("Trainee with ID " + id + " not found.");
                 });
 
-        logger.debug("Trainee found successfully: {}", trainee);
+        LOGGER.debug("Trainee found successfully: {}", trainee);
         return trainee;
     }
 }
-

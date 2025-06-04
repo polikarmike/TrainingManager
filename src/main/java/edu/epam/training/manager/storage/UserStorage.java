@@ -1,8 +1,7 @@
 package edu.epam.training.manager.storage;
 
 import edu.epam.training.manager.domain.base.UserEntity;
-import edu.epam.training.manager.storage.common.StorageSelectableByUsername;
 
-public interface UserStorage<T extends UserEntity> extends BaseStorage<T>, StorageSelectableByUsername<T> {
+public interface UserStorage<T extends UserEntity<ID>, ID> extends BaseStorage<T, ID> {
     T findByUsername(String username);
 }

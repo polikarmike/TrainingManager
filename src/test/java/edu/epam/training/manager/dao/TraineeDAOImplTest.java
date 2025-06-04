@@ -1,6 +1,6 @@
 package edu.epam.training.manager.dao;
 
-import edu.epam.training.manager.dao.impl.TraineeDAOImpl;
+import edu.epam.training.manager.dao.impl.TraineeDaoImpl;
 import edu.epam.training.manager.domain.Trainee;
 import edu.epam.training.manager.storage.impl.TraineeStorageImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +16,7 @@ import static org.mockito.Mockito.*;
 
 class TraineeDAOImplTest {
 
-    private TraineeDAOImpl traineeDAO;
+    private TraineeDaoImpl traineeDAO;
 
     @Mock
     private TraineeStorageImpl storageMock;
@@ -24,7 +24,7 @@ class TraineeDAOImplTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        traineeDAO = new TraineeDAOImpl();
+        traineeDAO = new TraineeDaoImpl();
         traineeDAO.setStorage(storageMock);
     }
 
@@ -109,4 +109,3 @@ class TraineeDAOImplTest {
         verify(storageMock).findByUsername("nobody");
     }
 }
-

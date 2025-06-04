@@ -1,6 +1,6 @@
 package edu.epam.training.manager.dao;
 
-import edu.epam.training.manager.dao.impl.TrainerDAOImpl;
+import edu.epam.training.manager.dao.impl.TrainerDaoImpl;
 import edu.epam.training.manager.domain.Trainer;
 import edu.epam.training.manager.storage.impl.TrainerStorageImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +16,7 @@ import static org.mockito.Mockito.*;
 
 class TrainerDAOImplTest {
 
-    private TrainerDAOImpl trainerDAO;
+    private TrainerDaoImpl trainerDAO;
 
     @Mock
     private TrainerStorageImpl storageMock;
@@ -24,7 +24,7 @@ class TrainerDAOImplTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        trainerDAO = new TrainerDAOImpl();
+        trainerDAO = new TrainerDaoImpl();
         trainerDAO.setStorage(storageMock);
     }
 
@@ -77,13 +77,6 @@ class TrainerDAOImplTest {
     }
 
     @Test
-    void delete_ShouldDelegateToStorageDelete() {
-        UUID trainerId = UUID.randomUUID();
-        trainerDAO.delete(trainerId);
-        verify(storageMock).delete(trainerId);
-    }
-
-    @Test
     void findByUsername_WhenFound_ShouldReturnOptionalWithValue() {
         Trainer t = new Trainer();
         t.setUsername("alexTrainer");
@@ -105,4 +98,3 @@ class TrainerDAOImplTest {
         verify(storageMock).findByUsername("ghost");
     }
 }
-

@@ -3,7 +3,7 @@ package edu.epam.training.manager.service.impl;
 import edu.epam.training.manager.dao.TrainerDao;
 import edu.epam.training.manager.domain.Trainer;
 
-import edu.epam.training.manager.service.TrainerService;
+import edu.epam.training.manager.service.CreateReadUpdateService;
 import edu.epam.training.manager.service.UserService;
 import edu.epam.training.manager.utils.generation.PasswordGenerator;
 
@@ -16,18 +16,18 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Setter
-public class TrainerServiceImpl implements TrainerService {
-    private static final Logger logger = LoggerFactory.getLogger(TrainerServiceImpl.class);
+public class TrainerServiceImpl implements CreateReadUpdateService<Trainer, UUID> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TrainerServiceImpl.class);
 
     @Autowired
-    private TrainerDao trainerDAO;
+    private TrainerDao<Trainer, UUID> trainerDAO;
 
     private UserService userService;
     private PasswordGenerator passwordGenerator;
 
     @Override
     public Trainer create(Trainer trainer) {
-        logger.debug("Starting trainer creation process for: {} {}",
+        LOGGER.debug("Starting trainer creation process for: {} {}",
                 trainer.getFirstName(), trainer.getLastName());
 
         UUID id = UUID.randomUUID();
@@ -43,20 +43,18 @@ public class TrainerServiceImpl implements TrainerService {
                 .password(password)
                 .build();
 
-        logger.warn("Attempting to register trainer in DAO with ID: {}", newTrainer.getId());
-
         trainerDAO.create(newTrainer);
 
-        logger.debug("Trainer created successfully: {}", newTrainer);
+        LOGGER.debug("Trainer created successfully: {}", newTrainer);
 
         return newTrainer;
     }
 
     @Override
     public Trainer update(Trainer trainer) {
-        logger.debug("Starting trainer update process for ID: {}", trainer.getId());
+        LOGGER.debug("Starting trainer update process for ID: {}", trainer.getId());
 
-        Trainer existing = select(trainer.getId());
+        Trainer existing = findById(trainer.getId());
 
         Trainer updatedTrainer = Trainer.builder()
                 .id(existing.getId())
@@ -68,32 +66,31 @@ public class TrainerServiceImpl implements TrainerService {
                 .specialization(Optional.ofNullable(trainer.getSpecialization()).orElse(existing.getSpecialization()))
                 .build();
 
-        logger.warn("Attempting to update trainer in DAO with ID: {}", trainer.getId());
         trainerDAO.update(updatedTrainer);
 
         Trainer result = trainerDAO.findById(trainer.getId())
                 .orElseThrow(() -> {
-                    logger.error("Trainer with ID {} not found after update.", trainer.getId());
+                    LOGGER.error("Trainer with ID {} not found after update.", trainer.getId());
                     return new IllegalArgumentException("Trainer with ID " + trainer.getId() + " not found after update.");
                 });
 
-        logger.debug("Trainer updated successfully with ID: {}", trainer.getId());
+        LOGGER.debug("Trainer updated successfully with ID: {}", trainer.getId());
+
         return result;
     }
 
     @Override
-    public Trainer select(UUID id) {
-        logger.debug("Initiating search for trainer with ID: {}", id);
+    public Trainer findById(UUID id) {
+        LOGGER.debug("Initiating search for trainer with ID: {}", id);
 
         Trainer trainer = trainerDAO.findById(id)
                 .orElseThrow(() -> {
-                    logger.error("Trainer with ID {} not found!", id);
+                    LOGGER.error("Trainer with ID {} not found!", id);
                     return new IllegalArgumentException("Trainer with ID " + id + " not found.");
                 });
 
-        logger.debug("Trainer found successfully: {}", trainer);
+        LOGGER.debug("Trainer found successfully: {}", trainer);
+
         return trainer;
     }
 }
-
-

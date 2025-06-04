@@ -13,7 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class Training extends BaseEntity {
+public class Training extends BaseEntity<UUID> {
     private String trainingName;
     private TrainingType trainingType;
     private UUID trainerId;

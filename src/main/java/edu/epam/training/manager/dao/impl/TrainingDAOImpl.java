@@ -1,10 +1,10 @@
 package edu.epam.training.manager.dao.impl;
 
-import edu.epam.training.manager.dao.TrainingDao;
-import edu.epam.training.manager.dao.base.AbstractDAO;
+import edu.epam.training.manager.dao.base.AbstractCreateReadDao;
 import edu.epam.training.manager.domain.Training;
-import edu.epam.training.manager.storage.impl.TrainingStorageImpl;
+import edu.epam.training.manager.storage.BaseStorage;
 
-public class TrainingDAOImpl
-        extends AbstractDAO<Training, TrainingStorageImpl> implements TrainingDao {
+import java.util.UUID;
+
+public class TrainingDAOImpl extends AbstractCreateReadDao<Training, BaseStorage<Training, UUID>, UUID> {
 }

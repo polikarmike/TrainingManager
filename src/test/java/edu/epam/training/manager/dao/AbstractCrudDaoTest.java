@@ -6,13 +6,13 @@ import static org.mockito.Mockito.*;
 import java.util.Optional;
 import java.util.UUID;
 
-import edu.epam.training.manager.dao.base.AbstractDAO;
+import edu.epam.training.manager.dao.base.AbstractCrudDao;
 import edu.epam.training.manager.domain.base.BaseEntity;
 import edu.epam.training.manager.storage.BaseStorage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class TestEntity extends BaseEntity {
+class TestEntity extends BaseEntity<UUID> {
     private final UUID id;
 
     public TestEntity(UUID id) {
@@ -30,11 +30,11 @@ class TestEntity extends BaseEntity {
     }
 }
 
-interface TestStorage extends BaseStorage<TestEntity> { }
+interface TestStorage extends BaseStorage<TestEntity, UUID> { }
 
-class TestDAO extends AbstractDAO<TestEntity, TestStorage> { }
+class TestDAO extends AbstractCrudDao<TestEntity, TestStorage, UUID> { }
 
-public class AbstractDAOTest {
+public class AbstractCrudDaoTest {
 
     private TestDAO testDAO;
     private TestStorage testStorage;
@@ -130,4 +130,3 @@ public class AbstractDAOTest {
         verify(testStorage).delete(id);
     }
 }
-

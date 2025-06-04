@@ -1,13 +1,9 @@
 package edu.epam.training.manager.dao;
 
-import edu.epam.training.manager.dao.common.DaoCreatable;
-import edu.epam.training.manager.dao.common.DaoSelectable;
-import edu.epam.training.manager.dao.common.DaoSelectableByUsername;
-import edu.epam.training.manager.dao.common.DaoUpdatable;
-import edu.epam.training.manager.domain.Trainer;
+import edu.epam.training.manager.domain.base.UserEntity;
 
-public interface TrainerDao extends
-        DaoCreatable<Trainer>,
-        DaoUpdatable<Trainer>,
-        DaoSelectable<Trainer>,
-        DaoSelectableByUsername<Trainer> { }
+import java.util.Optional;
+
+public interface TrainerDao<T extends UserEntity<ID>, ID> extends CreateReadUpdateDao<T, ID>{
+    Optional<T> findByUsername(String username);
+}

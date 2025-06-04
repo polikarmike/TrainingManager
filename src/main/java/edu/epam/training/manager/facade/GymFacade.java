@@ -3,21 +3,23 @@ package edu.epam.training.manager.facade;
 import edu.epam.training.manager.domain.Trainee;
 import edu.epam.training.manager.domain.Trainer;
 import edu.epam.training.manager.domain.Training;
-import edu.epam.training.manager.service.TraineeService;
-import edu.epam.training.manager.service.TrainerService;
-import edu.epam.training.manager.service.TrainingService;
+import edu.epam.training.manager.service.CreateReadService;
+import edu.epam.training.manager.service.CreateReadUpdateService;
+import edu.epam.training.manager.service.CrudService;
+import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
+@Component
 public class GymFacade {
-    private final TraineeService traineeService;
-    private final TrainerService trainerService;
-    private final TrainingService trainingService;
+    private final CrudService<Trainee, UUID> traineeService;
+    private final CreateReadUpdateService<Trainer, UUID> trainerService;
+    private final CreateReadService<Training, UUID> trainingService;
 
     public GymFacade(
-            TraineeService traineeService,
-            TrainerService trainerService,
-            TrainingService trainingService) {
+            CrudService<Trainee, UUID> traineeService,
+            CreateReadUpdateService<Trainer, UUID> trainerService,
+            CreateReadService<Training, UUID> trainingService) {
 
         this.traineeService = traineeService;
         this.trainerService = trainerService;
@@ -37,7 +39,7 @@ public class GymFacade {
     }
 
     public Trainee getTrainee(UUID id) {
-        return traineeService.select(id);
+        return traineeService.findById(id);
     }
 
     public Trainer registerTrainer(Trainer trainer) {
@@ -49,7 +51,7 @@ public class GymFacade {
     }
 
     public Trainer getTrainer(UUID id) {
-        return trainerService.select(id);
+        return trainerService.findById(id);
     }
 
     public Training registerTraining(Training training) {
@@ -57,8 +59,6 @@ public class GymFacade {
     }
 
     public Training getTraining(UUID id) {
-        return trainingService.select(id);
+        return trainingService.findById(id);
     }
 }
-
-

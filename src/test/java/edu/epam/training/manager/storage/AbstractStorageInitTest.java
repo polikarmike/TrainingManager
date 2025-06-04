@@ -15,13 +15,13 @@ import static org.junit.jupiter.api.Assertions.*;
 class AbstractStorageInitTest {
 
     @Setter
-    private static class DummyItem extends BaseEntity {
+    private static class DummyItem extends BaseEntity<UUID> {
         private UUID id;
         @Override
         public UUID getId() { return id; }
     }
 
-    private static class DummyStorage extends AbstractStorage<DummyItem> {
+    private static class DummyStorage extends AbstractStorage<DummyItem, UUID> {
 
     }
 
@@ -68,4 +68,3 @@ class AbstractStorageInitTest {
         assertTrue(ex.getMessage().contains("Failed to initialize storage"));
     }
 }
-

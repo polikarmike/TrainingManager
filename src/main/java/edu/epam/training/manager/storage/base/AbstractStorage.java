@@ -12,16 +12,16 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 @Setter
-public abstract class AbstractStorage<T extends BaseEntity> implements
-        BaseStorage<T> {
+public abstract class AbstractStorage<T extends BaseEntity<ID>, ID> implements
+        BaseStorage<T, ID> {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractStorage.class);
 
-    protected final Map<UUID, T> storage = new ConcurrentHashMap<>();
+    protected final Map<ID, T> storage = new ConcurrentHashMap<>();
     protected JsonDataLoader jsonDataLoader;
     protected String initFilePath;
     protected Class<T> itemClass;
@@ -30,7 +30,7 @@ public abstract class AbstractStorage<T extends BaseEntity> implements
     public void init() {
         if (initFilePath == null || initFilePath.trim().isEmpty()
                 || (initFilePath.startsWith("${") && initFilePath.endsWith("}"))) {
-            logger.debug("initFilePath not set for {} – skipping JSON initialization",
+            LOGGER.debug("initFilePath not set for {} – skipping JSON initialization",
                     getClass().getSimpleName());
             return;
         }
@@ -39,7 +39,7 @@ public abstract class AbstractStorage<T extends BaseEntity> implements
             throw new IllegalStateException("itemClass is not set for " + getClass().getSimpleName());
         }
 
-        logger.info("Starting initialization of {} from file {}", getClass().getSimpleName(), initFilePath);
+        LOGGER.info("Starting initialization of {} from file {}", getClass().getSimpleName(), initFilePath);
         try (InputStream is = getClass().getClassLoader().getResourceAsStream(initFilePath)) {
             if (is == null) {
                 throw new FileNotFoundException("Resource not found: " + initFilePath);
@@ -48,13 +48,13 @@ public abstract class AbstractStorage<T extends BaseEntity> implements
             List<T> items = jsonDataLoader.loadData(is, itemClass);
             for (T item : items) {
                 storage.put(item.getId(), item);
-                logger.debug("Loaded {} item with ID={}", getClass().getSimpleName(), item.getId());
+                LOGGER.debug("Loaded {} item with ID={}", getClass().getSimpleName(), item.getId());
             }
 
-            logger.info("Successfully initialized {}: loaded {} records",
+            LOGGER.info("Successfully initialized {}: loaded {} records",
                     getClass().getSimpleName(), items.size());
         } catch (Exception e) {
-            logger.error("Failed to initialize {} from {}: {}",
+            LOGGER.error("Failed to initialize {} from {}: {}",
                     getClass().getSimpleName(), initFilePath, e.getMessage(), e);
 
             throw new IllegalStateException("Failed to initialize storage from " + initFilePath, e);
@@ -67,7 +67,7 @@ public abstract class AbstractStorage<T extends BaseEntity> implements
     }
 
     @Override
-    public T findById(UUID id) {
+    public T findById(ID id) {
         return storage.get(id);
     }
 
@@ -77,8 +77,7 @@ public abstract class AbstractStorage<T extends BaseEntity> implements
     }
 
     @Override
-    public void delete(UUID id) {
+    public void delete(ID id) {
         storage.remove(id);
     }
 }
-

@@ -14,17 +14,17 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import java.util.UUID;
 
 public class TrainingManagerApplication {
-    private static final Logger logger = LoggerFactory.getLogger(TrainingManagerApplication.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TrainingManagerApplication.class);
 
     public static void main(String[] args) {
-        logger.info("Starting Application");
+        LOGGER.info("Starting Application");
 
         try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class)) {
             GymFacade gymFacade = context.getBean(GymFacade.class);
 
             UUID traineeId = UUID.fromString("a1d5f78e-32c7-4f9e-93e8-7c2a6f3bdf2d");
             Trainee fetchedTrainee = gymFacade.getTrainee(traineeId);
-            logger.info("Fetched Trainee: {}", fetchedTrainee);
+            LOGGER.info("Fetched Trainee: {}", fetchedTrainee);
 
             Trainer newTrainer = Trainer.builder()
                 .firstName("Chloe")
@@ -32,21 +32,13 @@ public class TrainingManagerApplication {
                 .specialization(TrainingType.YOGA)
                 .build();
             Trainer registeredTrainer = gymFacade.registerTrainer(newTrainer);
-            logger.info("Registered Trainer: {}", registeredTrainer);
+            LOGGER.info("Registered Trainer: {}", registeredTrainer);
 
             UUID trainingId = UUID.fromString("3c7e59a1-8d2b-4859-9c3f-72a6f3bdf2d1");
             Training fetchedTraining = gymFacade.getTraining(trainingId);
-            logger.info("Fetched Training: {}", fetchedTraining);
+            LOGGER.info("Fetched Training: {}", fetchedTraining);
         }
 
-        logger.info("Closing Application");
+        LOGGER.info("Closing Application");
     }
 }
-
-
-
-
-
-
-
-

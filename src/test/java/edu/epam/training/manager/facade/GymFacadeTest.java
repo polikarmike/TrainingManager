@@ -4,12 +4,11 @@ import edu.epam.training.manager.domain.Trainee;
 import edu.epam.training.manager.domain.Trainer;
 import edu.epam.training.manager.domain.Training;
 import edu.epam.training.manager.domain.TrainingType;
-import edu.epam.training.manager.service.TraineeService;
-import edu.epam.training.manager.service.TrainerService;
-import edu.epam.training.manager.service.TrainingService;
+import edu.epam.training.manager.service.CreateReadService;
+import edu.epam.training.manager.service.CreateReadUpdateService;
+import edu.epam.training.manager.service.CrudService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -20,16 +19,17 @@ import static org.mockito.Mockito.*;
 
 public class GymFacadeTest {
 
-    private TraineeService traineeService;
-    private TrainerService trainerService;
-    private TrainingService trainingService;
+    private CrudService<Trainee, UUID> traineeService;
+    private CreateReadUpdateService<Trainer, UUID> trainerService;
+    private CreateReadService<Training, UUID> trainingService;
     private GymFacade gymFacade;
 
+    @SuppressWarnings("unchecked")
     @BeforeEach
     void setUp() {
-        traineeService = mock(TraineeService.class);
-        trainerService = mock(TrainerService.class);
-        trainingService = mock(TrainingService.class);
+        traineeService = (CrudService<Trainee, UUID>) mock(CrudService.class);
+        trainerService = (CreateReadUpdateService<Trainer, UUID>) mock(CreateReadUpdateService.class);
+        trainingService = (CreateReadService<Training, UUID>) mock(CreateReadService.class);
         gymFacade = new GymFacade(traineeService, trainerService, trainingService);
     }
 
@@ -97,12 +97,13 @@ public class GymFacadeTest {
                 .trainingDuration(Duration.ofMinutes(45))
                 .build();
 
-        when(trainingService.select(trainingId)).thenReturn(training);
+
+        when(trainingService.findById(trainingId)).thenReturn(training);
 
         Training result = gymFacade.getTraining(trainingId);
 
         assertEquals(training, result);
-        verify(trainingService).select(trainingId);
+        verify(trainingService).findById(trainingId);
     }
 
     @Test
@@ -138,12 +139,12 @@ public class GymFacadeTest {
                 .dateOfBirth(LocalDate.of(1992, 5, 12))
                 .address("456 Main St")
                 .build();
-        when(traineeService.select(traineeId)).thenReturn(trainee);
+        when(traineeService.findById(traineeId)).thenReturn(trainee);
 
         Trainee result = gymFacade.getTrainee(traineeId);
 
         assertEquals(trainee, result);
-        verify(traineeService).select(traineeId);
+        verify(traineeService).findById(traineeId);
     }
 
     @Test
@@ -178,12 +179,12 @@ public class GymFacadeTest {
                 .isActive(true)
                 .specialization(TrainingType.YOGA)
                 .build();
-        when(trainerService.select(trainerId)).thenReturn(trainer);
+        when(trainerService.findById(trainerId)).thenReturn(trainer);
 
         Trainer result = gymFacade.getTrainer(trainerId);
 
         assertEquals(trainer, result);
-        verify(trainerService).select(trainerId);
+        verify(trainerService).findById(trainerId);
     }
 
     @Test
@@ -207,7 +208,4 @@ public class GymFacadeTest {
         assertEquals(training, result);
         verify(trainingService).create(training);
     }
-
 }
-
-

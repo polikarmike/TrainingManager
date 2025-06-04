@@ -4,12 +4,14 @@ import edu.epam.training.manager.domain.base.UserEntity;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.util.UUID;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Trainer extends UserEntity {
+public class Trainer extends UserEntity<UUID> {
     private TrainingType specialization;
 
     @Override

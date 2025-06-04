@@ -5,8 +5,8 @@ import edu.epam.training.manager.storage.UserStorage;
 
 import java.util.Optional;
 
-public abstract class AbstractUserStorage<T extends UserEntity>
-        extends AbstractStorage<T> implements UserStorage<T>
+public abstract class AbstractUserStorage<T extends UserEntity<ID>, ID>
+        extends AbstractStorage<T, ID> implements UserStorage<T, ID>
          {
 
     @Override
@@ -18,4 +18,3 @@ public abstract class AbstractUserStorage<T extends UserEntity>
         return result.orElse(null);
     }
 }
-
