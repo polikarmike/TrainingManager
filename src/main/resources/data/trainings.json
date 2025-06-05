@@ -1,0 +1,29 @@
+[
+  {
+    "id": "f91a8b32-6d7e-4b58-9c14-92a5d3e7b24f",
+    "trainingName": "Morning Cardio",
+    "trainingType": "CARDIO",
+    "trainerId": "c5d84f67-2e91-4e39-b8b2-42f7a5a9f82c",
+    "traineeId": "a1d5f78e-32c7-4f9e-93e8-7c2a6f3bdf2d",
+    "trainingDate": "2025-06-01",
+    "trainingDuration": "PT1H"
+  },
+  {
+    "id": "3c7e59a1-8d2b-4859-9c3f-72a6f3bdf2d1",
+    "trainingName": "Strength Bootcamp",
+    "trainingType": "STRENGTH",
+    "trainerId": "d7a2b349-6c4a-48b5-98f0-51e8c7d6c45b",
+    "traineeId": "b4e7a9c2-1f68-40e4-bc91-df9c3d37e6d0",
+    "trainingDate": "2025-06-02",
+    "trainingDuration": "PT1H30M"
+  },
+  {
+    "id": "7e12c45d-4f77-9476-6891-a20f46730000",
+    "trainingName": "Yoga Flow",
+    "trainingType": "YOGA",
+    "trainerId": "e1b5c784-9a3d-4d7b-8024-2f9c56d4a2d9",
+    "traineeId": "f3c92e58-7b44-4d64-9a3d-59a2d8e1b5a7",
+    "trainingDate": "2025-06-03",
+    "trainingDuration": "PT45M"
+  }
+]

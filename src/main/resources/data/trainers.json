@@ -1,0 +1,29 @@
+[
+  {
+    "id": "c5d84f67-2e91-4e39-b8b2-42f7a5a9f82c",
+    "firstName": "Ethan",
+    "lastName": "Walker",
+    "username": "ethan.walker",
+    "password": "X9mW7pLtZq",
+    "isActive": true,
+    "specialization": "CARDIO"
+  },
+  {
+    "id": "d7a2b349-6c4a-48b5-98f0-51e8c7d6c45b",
+    "firstName": "Olivia",
+    "lastName": "Taylor",
+    "username": "olivia.taylor",
+    "password": "Q3tY8kVzLp",
+    "isActive": true,
+    "specialization": "STRENGTH"
+  },
+  {
+    "id": "e1b5c784-9a3d-4d7b-8024-2f9c56d4a2d9",
+    "firstName": "Benjamin",
+    "lastName": "Miller",
+    "username": "benjamin.miller",
+    "password": "M2xT5pLzKq",
+    "isActive": false,
+    "specialization": "YOGA"
+  }
+]
