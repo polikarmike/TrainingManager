@@ -26,7 +26,7 @@ public class Trainer extends BaseEntity<Long> implements HasUser {
     private User user;
 
     @OneToMany(mappedBy = "trainer")
-    private Set<Training> trainings = new HashSet<>();
+    private final Set<Training> trainings = new HashSet<>();
 
     @ManyToMany
     @JoinTable(
@@ -34,7 +34,7 @@ public class Trainer extends BaseEntity<Long> implements HasUser {
             joinColumns = @JoinColumn(name = "trainer_id"),
             inverseJoinColumns = @JoinColumn(name = "trainee_id")
     )
-    private Set<Trainee> trainees = new HashSet<>();
+    private final Set<Trainee> trainees = new HashSet<>();
 
     @Override
     public String toString() {

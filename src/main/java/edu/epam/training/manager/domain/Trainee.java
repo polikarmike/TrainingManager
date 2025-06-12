@@ -31,10 +31,10 @@ public class Trainee extends BaseEntity<Long> implements HasUser {
             joinColumns = @JoinColumn(name = "trainee_id"),
             inverseJoinColumns = @JoinColumn(name = "trainer_id")
     )
-    private Set<Trainer> trainers = new HashSet<>();
+    private final Set<Trainer> trainers = new HashSet<>();
 
     @OneToMany(mappedBy = "trainee", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private Set<Training> trainings = new HashSet<>();
+    private final Set<Training> trainings = new HashSet<>();
 
     @Override
     public String toString() {
