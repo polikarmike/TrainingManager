@@ -1,9 +1,13 @@
 package edu.epam.training.manager.dao;
 
-import edu.epam.training.manager.domain.base.UserEntity;
+import edu.epam.training.manager.dao.operations.*;
+import edu.epam.training.manager.domain.Trainee;
 
-import java.util.Optional;
-
-public interface TraineeDao<T extends UserEntity<ID>, ID> extends CrudDao<T, ID>{
-    Optional<T> findByUsername(String username);
+public interface TraineeDao
+        extends CreateDao<Trainee, Long>,
+                ReadDao<Trainee, Long>,
+                UpdateDao<Trainee, Long>,
+                DeleteDao<Trainee, Long>,
+                UserAccountOperations<Trainee, Long>,
+                TraineeDaoOperations{
 }

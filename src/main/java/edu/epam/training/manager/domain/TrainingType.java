@@ -1,22 +1,19 @@
 package edu.epam.training.manager.domain;
 
+import edu.epam.training.manager.domain.base.BaseEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.hibernate.annotations.Immutable;
 
+@Entity
+@Immutable
+@Table(name = "training_type")
 @Getter
-public enum TrainingType {
-    YOGA("Yoga"),
-    CARDIO("Cardio"),
-    STRENGTH("Strength"),
-    PILATES("Pilates"),
-    CROSSFIT("CrossFit"),
-    DANCE("Dance"),
-    BOXING("Boxing"),
-    CYCLING("Cycling"),
-    SWIMMING("Swimming");
-
-    private final String displayName;
-
-    TrainingType(String displayName) {
-        this.displayName = displayName;
-    }
+@EqualsAndHashCode(callSuper = true)
+public class TrainingType extends BaseEntity<Long> {
+    @Column(name = "training_type_name", nullable = false)
+    private String trainingTypeName;
 }

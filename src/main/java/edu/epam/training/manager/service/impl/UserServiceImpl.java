@@ -1,53 +1,59 @@
 package edu.epam.training.manager.service.impl;
 
-import edu.epam.training.manager.dao.TraineeDao;
-import edu.epam.training.manager.dao.TrainerDao;
-import edu.epam.training.manager.domain.Trainee;
-import edu.epam.training.manager.domain.Trainer;
+import edu.epam.training.manager.dao.operations.UserSearchOperations;
+import edu.epam.training.manager.exception.InvalidStateException;
 import edu.epam.training.manager.service.UserService;
 import edu.epam.training.manager.utils.generation.UsernameGenerator;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import java.util.UUID;
+import java.util.HashSet;
+import java.util.Set;
 
+
+@Component
 @Setter
 public class UserServiceImpl implements UserService {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
-    @Autowired
-    private TraineeDao<Trainee, UUID> traineeDAO;
+    private static final String SERVICE_NAME = "UserServiceImpl";
 
-    @Autowired
-    private TrainerDao<Trainer, UUID> trainerDAO;
+    private static final String LOG_GENERATE_START     =
+            SERVICE_NAME + " - Generating unique username for: firstName={}, lastName={}";
+    private static final String LOG_TRY_CANDIDATE      =
+            SERVICE_NAME + " - Trying username candidate: {}";
+    private static final String LOG_GENERATE_FAIL      =
+            SERVICE_NAME + " - Failed to generate unique username after {} attempts";
+    private static final String ERR_GENERATE_USERNAME  =
+            SERVICE_NAME + ": Could not generate unique username after %d attempts";
 
-    private UsernameGenerator usernameGenerator;
+    private final UserSearchOperations userSearchOperations;
+    private final UsernameGenerator usernameGenerator;
+    private static final int MAX_ATTEMPTS = 250;
+
+    public UserServiceImpl(UserSearchOperations userSearchOperations, UsernameGenerator usernameGenerator) {
+        this.userSearchOperations = userSearchOperations;
+        this.usernameGenerator = usernameGenerator;
+    }
 
     @Override
     public String generateUniqueUsername(String firstName, String lastName) {
-        LOGGER.debug("Starting username generation for: firstName={}, lastName={}", firstName, lastName);
+        LOGGER.debug(LOG_GENERATE_START, firstName, lastName);
 
-        return usernameGenerator.generateCandidates(firstName, lastName)
-                .peek(candidate -> LOGGER.debug("Generated candidate username: {}", candidate))
-                .filter(this::isUsernameUnique)
-                .peek(uniqueCandidate -> LOGGER.debug("Username '{}' passed uniqueness check", uniqueCandidate))
+        String baseUsername = usernameGenerator.generateBaseUsername(firstName, lastName);
+        Set<String> existingUsernames = new HashSet<>(userSearchOperations.findUsernamesWithPrefix(baseUsername));
+
+        return usernameGenerator.generateCandidates(baseUsername, MAX_ATTEMPTS).stream()
+                .peek(candidate -> LOGGER.debug(LOG_TRY_CANDIDATE, candidate))
+                .filter(candidate -> !existingUsernames.contains(candidate))
                 .findFirst()
                 .orElseThrow(() -> {
-                    LOGGER.error("Failed to generate a unique username for firstName={}, lastName={}", firstName, lastName);
-                    return new IllegalStateException("No unique username could be generated.");
+                    LOGGER.error(LOG_GENERATE_FAIL, MAX_ATTEMPTS);
+                    return new InvalidStateException(
+                            String.format(ERR_GENERATE_USERNAME, MAX_ATTEMPTS)
+                    );
                 });
-    }
-
-    private boolean isUsernameUnique(String username) {
-        boolean isUnique = trainerDAO.findByUsername(username).isEmpty()
-                && traineeDAO.findByUsername(username).isEmpty();
-
-        if (!isUnique) {
-            LOGGER.debug("Username '{}' is already taken.", username);
-        }
-
-        return isUnique;
     }
 }

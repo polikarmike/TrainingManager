@@ -3,209 +3,266 @@ package edu.epam.training.manager.facade;
 import edu.epam.training.manager.domain.Trainee;
 import edu.epam.training.manager.domain.Trainer;
 import edu.epam.training.manager.domain.Training;
-import edu.epam.training.manager.domain.TrainingType;
-import edu.epam.training.manager.service.CreateReadService;
-import edu.epam.training.manager.service.CreateReadUpdateService;
-import edu.epam.training.manager.service.CrudService;
-import org.junit.jupiter.api.BeforeEach;
+import edu.epam.training.manager.service.TraineeService;
+import edu.epam.training.manager.service.TrainerService;
+import edu.epam.training.manager.service.TrainingService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Duration;
 import java.time.LocalDate;
-import java.util.UUID;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class GymFacadeTest {
+@ExtendWith(MockitoExtension.class)
+class GymFacadeTest {
 
-    private CrudService<Trainee, UUID> traineeService;
-    private CreateReadUpdateService<Trainer, UUID> trainerService;
-    private CreateReadService<Training, UUID> trainingService;
+    @Mock
+    private TraineeService traineeService;
+
+    @Mock
+    private TrainerService trainerService;
+
+    @Mock
+    private TrainingService trainingService;
+
+    @InjectMocks
     private GymFacade gymFacade;
 
-    @SuppressWarnings("unchecked")
-    @BeforeEach
-    void setUp() {
-        traineeService = (CrudService<Trainee, UUID>) mock(CrudService.class);
-        trainerService = (CreateReadUpdateService<Trainer, UUID>) mock(CreateReadUpdateService.class);
-        trainingService = (CreateReadService<Training, UUID>) mock(CreateReadService.class);
-        gymFacade = new GymFacade(traineeService, trainerService, trainingService);
-    }
-
     @Test
-    void registerTrainee_shouldDelegateToService() {
-        Trainee newTrainee = Trainee.builder()
-                .id(UUID.randomUUID())
-                .firstName("John")
-                .lastName("Doe")
-                .username("john123")
-                .password("secret")
-                .isActive(true)
-                .dateOfBirth(LocalDate.of(1990, 1, 1))
-                .address("123 Main St")
-                .build();
+    void registerTrainee_callsTraineeServiceCreateProfile() {
+        Trainee trainee = new Trainee();
+        when(traineeService.createProfile(trainee)).thenReturn(trainee);
 
-        when(traineeService.create(newTrainee)).thenReturn(newTrainee);
-
-        Trainee result = gymFacade.registerTrainee(newTrainee);
-
-        assertEquals(newTrainee, result);
-        verify(traineeService).create(newTrainee);
-    }
-
-    @Test
-    void updateTrainer_shouldReturnUpdatedTrainer() {
-        Trainer trainer = Trainer.builder()
-                .id(UUID.randomUUID())
-                .firstName("Anna")
-                .lastName("Smith")
-                .username("asmith")
-                .password("pass123")
-                .isActive(true)
-                .specialization(TrainingType.YOGA)
-                .build();
-
-        when(trainerService.update(trainer)).thenReturn(trainer);
-
-        Trainer updated = gymFacade.updateTrainer(trainer);
-
-        assertEquals(trainer, updated);
-        verify(trainerService).update(trainer);
-    }
-
-    @Test
-    void deleteTrainee_shouldCallService() {
-        UUID id = UUID.randomUUID();
-
-        gymFacade.deleteTrainee(id);
-
-        verify(traineeService).delete(id);
-    }
-
-    @Test
-    void getTraining_shouldReturnTraining() {
-        UUID trainingId = UUID.randomUUID();
-
-        Training training = Training.builder()
-                .id(trainingId)
-                .trainingName("Morning Cardio")
-                .trainingType(TrainingType.CARDIO)
-                .trainerId(UUID.randomUUID())
-                .traineeId(UUID.randomUUID())
-                .trainingDate(LocalDate.now())
-                .trainingDuration(Duration.ofMinutes(45))
-                .build();
-
-
-        when(trainingService.findById(trainingId)).thenReturn(training);
-
-        Training result = gymFacade.getTraining(trainingId);
-
-        assertEquals(training, result);
-        verify(trainingService).findById(trainingId);
-    }
-
-    @Test
-    void updateTrainee_shouldDelegateToTraineeService() {
-        Trainee traineeUpdate = Trainee.builder()
-                .id(UUID.randomUUID())
-                .firstName("Jane")
-                .lastName("Doe")
-                .username("janeDoe")
-                .password("password")
-                .isActive(true)
-                .dateOfBirth(LocalDate.of(1992, 5, 12))
-                .address("456 Main St")
-                .build();
-        when(traineeService.update(traineeUpdate)).thenReturn(traineeUpdate);
-
-        Trainee result = gymFacade.updateTrainee(traineeUpdate);
-
-        assertEquals(traineeUpdate, result);
-        verify(traineeService).update(traineeUpdate);
-    }
-
-    @Test
-    void getTrainee_shouldReturnTraineeFromService() {
-        UUID traineeId = UUID.randomUUID();
-        Trainee trainee = Trainee.builder()
-                .id(traineeId)
-                .firstName("Jane")
-                .lastName("Doe")
-                .username("janeDoe")
-                .password("password")
-                .isActive(true)
-                .dateOfBirth(LocalDate.of(1992, 5, 12))
-                .address("456 Main St")
-                .build();
-        when(traineeService.findById(traineeId)).thenReturn(trainee);
-
-        Trainee result = gymFacade.getTrainee(traineeId);
+        Trainee result = gymFacade.registerTrainee(trainee);
 
         assertEquals(trainee, result);
-        verify(traineeService).findById(traineeId);
+        verify(traineeService).createProfile(trainee);
     }
 
     @Test
-    void registerTrainer_shouldDelegateToTrainerService() {
-        Trainer trainer = Trainer.builder()
-                .id(UUID.randomUUID())
-                .firstName("Anna")
-                .lastName("Smith")
-                .username("asmith")
-                .password("pass123")
-                .isActive(true)
-                .specialization(TrainingType.YOGA)
-                .build();
-        when(trainerService.create(trainer)).thenReturn(trainer);
+    void updateTrainee_callsUpdateProfile() {
+        String username = "user";
+        String password = "pass";
+        Trainee traineeUpdate = new Trainee();
+        Trainee updated = new Trainee();
+
+        when(traineeService.updateProfile(username, password, traineeUpdate)).thenReturn(updated);
+
+        Trainee result = gymFacade.updateTrainee(username, password, traineeUpdate);
+
+        assertEquals(updated, result);
+        verify(traineeService).updateProfile(username, password, traineeUpdate);
+    }
+
+    @Test
+    void deleteTrainee_callsDelete() {
+        String authUser = "authUser";
+        String authPass = "authPass";
+        String username = "userToDelete";
+
+        doNothing().when(traineeService).delete(authUser, authPass, username);
+
+        gymFacade.deleteTrainee(authUser, authPass, username);
+
+        verify(traineeService).delete(authUser, authPass, username);
+    }
+
+    @Test
+    void getTraineeByUsername_callsFindByUsername() {
+        String authUser = "authUser";
+        String authPass = "authPass";
+        String username = "user1";
+        Trainee trainee = new Trainee();
+
+        when(traineeService.findByUsername(authUser, authPass, username)).thenReturn(trainee);
+
+        Trainee result = gymFacade.getTraineeByUsername(authUser, authPass, username);
+
+        assertEquals(trainee, result);
+        verify(traineeService).findByUsername(authUser, authPass, username);
+    }
+
+    @Test
+    void getTraineeById_callsFindById() {
+        Long id = 123L;
+        Trainee trainee = new Trainee();
+
+        when(traineeService.findById(id)).thenReturn(trainee);
+
+        Trainee result = gymFacade.getTraineeById(id);
+
+        assertEquals(trainee, result);
+        verify(traineeService).findById(id);
+    }
+
+    @Test
+    void toggleTraineeStatus_callsToggleActiveStatus() {
+        String authUser = "authUser";
+        String authPass = "authPass";
+        String username = "user1";
+
+        doNothing().when(traineeService).toggleActiveStatus(authUser, authPass, username);
+
+        gymFacade.toggleTraineeStatus(authUser, authPass, username);
+
+        verify(traineeService).toggleActiveStatus(authUser, authPass, username);
+    }
+
+    @Test
+    void getTraineeTrainings_callsGetTraineeTrainings() {
+        String authUser = "authUser";
+        String authPass = "authPass";
+        String username = "user1";
+        LocalDate fromDate = LocalDate.of(2025, 1, 1);
+        LocalDate toDate = LocalDate.of(2025, 12, 31);
+        String trainerUsername = "trainer1";
+        String trainingType = "CARDIO";
+
+        List<Training> expectedTrainings = List.of(new Training());
+
+        when(traineeService.getTraineeTrainings(authUser, authPass, username, fromDate, toDate, trainerUsername, trainingType))
+                .thenReturn(expectedTrainings);
+
+        List<Training> result = gymFacade.getTraineeTrainings(authUser, authPass, username, fromDate, toDate, trainerUsername, trainingType);
+
+        assertEquals(expectedTrainings, result);
+        verify(traineeService).getTraineeTrainings(authUser, authPass, username, fromDate, toDate, trainerUsername, trainingType);
+    }
+
+    @Test
+    void changeTraineePassword_callsChangePassword() {
+        String authUser = "authUser";
+        String authPass = "authPass";
+        String username = "user1";
+        String newPassword = "newPass";
+
+        when(traineeService.changePassword(authUser, authPass, username)).thenReturn(newPassword);
+
+        String result = gymFacade.changeTraineePassword(authUser, authPass, username);
+
+        assertEquals(newPassword, result);
+        verify(traineeService).changePassword(authUser, authPass, username);
+    }
+
+    @Test
+    void registerTrainer_callsTrainerServiceCreateProfile() {
+        Trainer trainer = new Trainer();
+        when(trainerService.createProfile(trainer)).thenReturn(trainer);
 
         Trainer result = gymFacade.registerTrainer(trainer);
 
         assertEquals(trainer, result);
-        verify(trainerService).create(trainer);
+        verify(trainerService).createProfile(trainer);
     }
 
     @Test
-    void getTrainer_shouldReturnTrainerFromService() {
-        // Arrange
-        UUID trainerId = UUID.randomUUID();
-        Trainer trainer = Trainer.builder()
-                .id(trainerId)
-                .firstName("Anna")
-                .lastName("Smith")
-                .username("asmith")
-                .password("pass123")
-                .isActive(true)
-                .specialization(TrainingType.YOGA)
-                .build();
-        when(trainerService.findById(trainerId)).thenReturn(trainer);
+    void updateTrainer_callsUpdateProfile() {
+        String username = "trainerUser";
+        String password = "pass";
+        Trainer trainerUpdate = new Trainer();
+        Trainer updated = new Trainer();
 
-        Trainer result = gymFacade.getTrainer(trainerId);
+        when(trainerService.updateProfile(username, password, trainerUpdate)).thenReturn(updated);
+
+        Trainer result = gymFacade.updateTrainer(username, password, trainerUpdate);
+
+        assertEquals(updated, result);
+        verify(trainerService).updateProfile(username, password, trainerUpdate);
+    }
+
+    @Test
+    void getTrainerByUsername_callsFindByUsername() {
+        String authUser = "authUser";
+        String authPass = "authPass";
+        String username = "trainer1";
+        Trainer trainer = new Trainer();
+
+        when(trainerService.findByUsername(authUser, authPass, username)).thenReturn(trainer);
+
+        Trainer result = gymFacade.getTrainerByUsername(authUser, authPass, username);
 
         assertEquals(trainer, result);
-        verify(trainerService).findById(trainerId);
+        verify(trainerService).findByUsername(authUser, authPass, username);
     }
 
     @Test
-    void registerTraining_shouldDelegateToTrainingService() {
-        UUID trainingId = UUID.randomUUID();
-        UUID trainerId = UUID.randomUUID();
-        UUID traineeId = UUID.randomUUID();
-        Training training = Training.builder()
-                .id(trainingId)
-                .trainingName("Evening Pilates")
-                .trainingType(TrainingType.PILATES)
-                .trainerId(trainerId)
-                .traineeId(traineeId)
-                .trainingDate(LocalDate.now())
-                .trainingDuration(Duration.ofMinutes(60))
-                .build();
-        when(trainingService.create(training)).thenReturn(training);
+    void getTrainerById_callsFindById() {
+        Long id = 123L;
+        Trainer trainer = new Trainer();
 
-        Training result = gymFacade.registerTraining(training);
+        when(trainerService.findById(id)).thenReturn(trainer);
 
-        assertEquals(training, result);
-        verify(trainingService).create(training);
+        Trainer result = gymFacade.getTrainerById(id);
+
+        assertEquals(trainer, result);
+        verify(trainerService).findById(id);
+    }
+
+    @Test
+    void toggleTrainerStatus_callsToggleActiveStatus() {
+        String authUser = "authUser";
+        String authPass = "authPass";
+        String username = "trainerUser";
+
+        doNothing().when(trainerService).toggleActiveStatus(authUser, authPass, username);
+
+        gymFacade.toggleTrainerStatus(authUser, authPass, username);
+
+        verify(trainerService).toggleActiveStatus(authUser, authPass, username);
+    }
+
+    @Test
+    void getTrainerTrainings_callsGetTrainerTrainings() {
+        String authUser = "authUser";
+        String authPass = "authPass";
+        String username = "trainer1";
+        LocalDate fromDate = LocalDate.of(2025, 1, 1);
+        LocalDate toDate = LocalDate.of(2025, 12, 31);
+        String traineeUsername = "trainee1";
+
+        List<Training> expectedTrainings = List.of(new Training());
+
+        when(trainerService.getTrainerTrainings(authUser, authPass, username, fromDate, toDate, traineeUsername))
+                .thenReturn(expectedTrainings);
+
+        List<Training> result = gymFacade.getTrainerTrainings(authUser, authPass, username, fromDate, toDate, traineeUsername);
+
+        assertEquals(expectedTrainings, result);
+        verify(trainerService).getTrainerTrainings(authUser, authPass, username, fromDate, toDate, traineeUsername);
+    }
+
+    @Test
+    void changeTrainerPassword_callsChangePassword() {
+        String authUser = "authUser";
+        String authPass = "authPass";
+        String username = "trainer1";
+        String newPassword = "newPass";
+
+        when(trainerService.changePassword(authUser, authPass, username)).thenReturn(newPassword);
+
+        String result = gymFacade.changeTrainerPassword(authUser, authPass, username);
+
+        assertEquals(newPassword, result);
+        verify(trainerService).changePassword(authUser, authPass, username);
+    }
+
+    @Test
+    void addTraining_callsTrainingServiceAddTraining() {
+        String authUser = "authUser";
+        String authPass = "authPass";
+        Training training = new Training();
+        Training createdTraining = new Training();
+
+        when(trainingService.addTraining(authUser, authPass, training)).thenReturn(createdTraining);
+
+        Training result = gymFacade.addTraining(authUser, authPass, training);
+
+        assertEquals(createdTraining, result);
+        verify(trainingService).addTraining(authUser, authPass, training);
     }
 }
