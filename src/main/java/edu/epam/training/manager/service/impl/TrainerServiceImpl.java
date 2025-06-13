@@ -5,8 +5,8 @@ import edu.epam.training.manager.domain.Trainer;
 
 import edu.epam.training.manager.domain.Training;
 import edu.epam.training.manager.domain.User;
-import edu.epam.training.manager.exception.EntityNotFoundException;
-import edu.epam.training.manager.service.AuthService;
+import edu.epam.training.manager.dto.Credentials;
+import edu.epam.training.manager.service.AuthenticationService;
 import edu.epam.training.manager.service.TrainerService;
 import edu.epam.training.manager.service.UserService;
 import edu.epam.training.manager.utils.generation.PasswordGenerator;
@@ -26,28 +26,27 @@ public class TrainerServiceImpl implements TrainerService {
 
     private static final String SERVICE_NAME = "TrainerServiceImpl";
 
-    private static final String LOG_CREATE_TRAINER_START = SERVICE_NAME + " - Starting creation for trainer: {} {}";
-    private static final String LOG_CREATE_SUCCESS = SERVICE_NAME + " - Created trainer: {}";
+    private static final String LOG_QUERY_START    =
+            SERVICE_NAME + " - Fetching trainings for trainer {} with [from={}, to={}, trainee={}]";
+    private static final String LOG_QUERY_RESULTS  =
+            SERVICE_NAME + " - Retrieved {} trainings for trainer {}";
 
-    private static final String LOG_UPDATE_START   = SERVICE_NAME + " - Starting update for trainer ID: {}";
-    private static final String LOG_UPDATE_SUCCESS = SERVICE_NAME + " - Updated trainer ID: {}";
+    private static final String LOG_UNASSIGNED_SEARCH_START   =
+            SERVICE_NAME + " - Initiating search for unassigned trainers (without trainees).";
+    private static final String LOG_UNASSIGNED_SEARCH_SUCCESS =
+            SERVICE_NAME + " - Search completed. Found {} unassigned trainers.";
 
-    private static final String LOG_QUERY_START    = SERVICE_NAME + " - Fetching trainings for trainer {} with [from={}, to={}, trainee={}]";
-    private static final String LOG_QUERY_RESULTS  = SERVICE_NAME + " - Retrieved {} trainings for trainer {}";
-
-    private static final String ERR_NOT_FOUND_BY_ID    = SERVICE_NAME + ": No trainer found with ID '%s'";
-
-    private final AuthService authService;
+    private final AuthenticationService authenticationService;
     private final TrainerDao trainerDao;
     private final  UserService userService;
     private final PasswordGenerator passwordGenerator;
 
-    public TrainerServiceImpl(AuthService authService,
+    public TrainerServiceImpl(AuthenticationService authenticationService,
                               TrainerDao trainerDao,
                               UserService userService,
                               PasswordGenerator passwordGenerator) {
 
-        this.authService = authService;
+        this.authenticationService = authenticationService;
         this.trainerDao = trainerDao;
         this.userService = userService;
         this.passwordGenerator = passwordGenerator;
@@ -59,8 +58,8 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public AuthService getAuthService() {
-        return authService;
+    public AuthenticationService getAuthService() {
+        return authenticationService;
     }
 
     @Override
@@ -69,86 +68,39 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    @Transactional
-    public Trainer createProfile(Trainer trainer) {
-        LOGGER.debug(LOG_CREATE_TRAINER_START,
-                trainer.getUser().getFirstName(),
-                trainer.getUser().getLastName());
-
-        String username = userService.generateUniqueUsername(
-                trainer.getUser().getFirstName(),
-                trainer.getUser().getLastName());
-
-        String password = passwordGenerator.generate();
-
-        User newUser = User.builder()
-                .firstName(trainer.getUser().getFirstName())
-                .lastName(trainer.getUser().getLastName())
-                .username(username)
-                .password(password)
-                .isActive(true)
-                .build();
-
-        Trainer newTrainer = Trainer.builder()
-                .user(newUser)
-                .specialization(trainer.getSpecialization())
-                .build();
-
-        Trainer created = trainerDao.create(newTrainer);
-
-        LOGGER.debug(LOG_CREATE_SUCCESS, created);
-        return created;
+    public UserService getUserService() {
+        return userService;
     }
 
     @Override
-    @Transactional
-    public Trainer updateProfile(String authUsername, String authPassword, Trainer trainer) {
-        LOGGER.debug(LOG_UPDATE_START, trainer.getId());
-        authService.authenticateCredentials(authUsername, authPassword);
+    public Trainer buildProfile(User user, Trainer profile) {
+        return Trainer.builder()
+                .user(user)
+                .specialization(profile.getSpecialization())
+                .build();
+    }
 
-        Trainer existing = trainerDao.findById(trainer.getId())
-                .orElseThrow(() -> {
-                    String msg = String.format(ERR_NOT_FOUND_BY_ID, trainer.getId());
-                    LOGGER.error(msg);
-                    return new EntityNotFoundException(msg);
-                });
-
-        User existingUser = existing.getUser();
-
-        Optional.ofNullable(trainer.getUser().getFirstName())
-                .ifPresent(existingUser::setFirstName);
-
-        Optional.ofNullable(trainer.getUser().getLastName())
-                .ifPresent(existingUser::setLastName);
-
-        existingUser.setActive(trainer.getUser().isActive());
-
-        Optional.ofNullable(trainer.getSpecialization())
-                .ifPresent(existing::setSpecialization);
-
-        Trainer updated = trainerDao.update(existing);
-
-        LOGGER.debug(LOG_UPDATE_SUCCESS, updated.getId());
-        return updated;
+    @Override
+    public void updateProfileSpecificFields(Trainer existing, Trainer item) {
+        Optional.ofNullable(item.getSpecialization()).ifPresent(existing::setSpecialization);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Trainer> findUnassignedTrainers(String authUsername, String authPassword) {
-        LOGGER.debug("Initiating search for unassigned trainers (without trainees).");
+    public List<Trainer> findUnassignedTrainers(Credentials authCredentials) {
+        LOGGER.debug(LOG_UNASSIGNED_SEARCH_START);
 
-        authService.authenticateCredentials(authUsername, authPassword);
+        authenticationService.authenticateCredentials(authCredentials);
 
         List<Trainer> trainers = trainerDao.findUnassignedTrainers();
 
-        LOGGER.debug("Search completed. Found {} unassigned trainers.", trainers.size());
+        LOGGER.debug(LOG_UNASSIGNED_SEARCH_SUCCESS, trainers.size());
         return trainers;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Training> getTrainerTrainings(String authUsername,
-                                              String authPassword,
+    public List<Training> getTrainerTrainings(Credentials authCredentials,
                                               String username,
                                               LocalDate fromDate,
                                               LocalDate toDate,
@@ -156,7 +108,7 @@ public class TrainerServiceImpl implements TrainerService {
         LOGGER.debug(LOG_QUERY_START,
                 username, fromDate, toDate, traineeUsername);
 
-        authService.authenticateCredentials(authUsername, authPassword);
+        authenticationService.authenticateCredentials(authCredentials);
 
         List<Training> trainings = trainerDao.getTrainerTrainings(username, fromDate, toDate, traineeUsername);
 

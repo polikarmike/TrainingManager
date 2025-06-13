@@ -1,5 +1,6 @@
 package edu.epam.training.manager.domain;
 
+import edu.epam.training.manager.constants.EntityConstants;
 import edu.epam.training.manager.domain.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -13,10 +14,10 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class User extends BaseEntity<Long> {
-    @Column(name = "first_name", nullable = false)
+    @Column(name = EntityConstants.COL_FIRST_NAME, nullable = false)
     private String firstName;
 
-    @Column(name = "last_name", nullable = false)
+    @Column(name = EntityConstants.COL_LAST_NAME, nullable = false)
     private String lastName;
 
     @Column(nullable = false)
@@ -25,6 +26,6 @@ public class User extends BaseEntity<Long> {
     @Column(nullable = false)
     private String password;
 
-    @Column(name = "is_active", nullable = false)
+    @Column(name = EntityConstants.COL_IS_ACTIVE, nullable = false)
     private boolean isActive;
 }

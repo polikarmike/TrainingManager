@@ -1,8 +1,7 @@
 package edu.epam.training.manager.dao;
 
-import edu.epam.training.manager.dao.impl.SystemUserDaoImpl;
-import edu.epam.training.manager.dao.operations.AuthenticationOperations;
-import edu.epam.training.manager.dao.operations.UserSearchOperations;
+import edu.epam.training.manager.constants.ParameterConstants;
+import edu.epam.training.manager.dao.impl.UserManagementDaoImpl;
 import edu.epam.training.manager.domain.User;
 
 import edu.epam.training.manager.exception.base.DaoException;
@@ -18,7 +17,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class SystemUserDaoImplTest {
+class UserManagementDaoImplTest {
 
     @Mock
     private SessionFactory sessionFactory;
@@ -32,12 +31,12 @@ class SystemUserDaoImplTest {
     @Mock
     private Query<User> authQuery;
 
-    private SystemUserDaoImpl dao;
+    private UserManagementDaoImpl dao;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        dao = new SystemUserDaoImpl(sessionFactory);
+        dao = new UserManagementDaoImpl(sessionFactory);
 
         when(sessionFactory.getCurrentSession()).thenReturn(session);
     }
@@ -47,9 +46,9 @@ class SystemUserDaoImplTest {
         String prefix = "adm";
         List<String> expectedUsernames = List.of("admin", "administrator");
 
-        when(session.createQuery(UserSearchOperations.HQL_FIND_USERNAMES_WITH_PREFIX, String.class))
+        when(session.createQuery(HqlQueryConstants.HQL_USER_FIND_USERNAMES_WITH_PREFIX, String.class))
                 .thenReturn(usernameQuery);
-        when(usernameQuery.setParameter("prefix", prefix + "%"))
+        when(usernameQuery.setParameter(ParameterConstants.PREFIX, prefix + "%"))
                 .thenReturn(usernameQuery);
         when(usernameQuery.getResultList())
                 .thenReturn(expectedUsernames);
@@ -58,8 +57,8 @@ class SystemUserDaoImplTest {
 
         assertEquals(expectedUsernames, result);
 
-        verify(session).createQuery(UserSearchOperations.HQL_FIND_USERNAMES_WITH_PREFIX, String.class);
-        verify(usernameQuery).setParameter("prefix", prefix + "%");
+        verify(session).createQuery(HqlQueryConstants.HQL_USER_FIND_USERNAMES_WITH_PREFIX, String.class);
+        verify(usernameQuery).setParameter(ParameterConstants.PREFIX, prefix + "%");
         verify(usernameQuery).getResultList();
     }
 
@@ -67,7 +66,7 @@ class SystemUserDaoImplTest {
     void testFindUsernamesWithPrefix_throwsDaoException() {
         String prefix = "adm";
 
-        when(session.createQuery(UserSearchOperations.HQL_FIND_USERNAMES_WITH_PREFIX, String.class))
+        when(session.createQuery(HqlQueryConstants.HQL_USER_FIND_USERNAMES_WITH_PREFIX, String.class))
                 .thenThrow(new RuntimeException("DB error"));
 
         DaoException thrown = assertThrows(DaoException.class, () -> dao.findUsernamesWithPrefix(prefix));
@@ -82,11 +81,11 @@ class SystemUserDaoImplTest {
 
         User user = new User();
 
-        when(session.createQuery(AuthenticationOperations.HQL_VALIDATE, User.class))
+        when(session.createQuery(HqlQueryConstants.HQL_USER_VALIDATE, User.class))
                 .thenReturn(authQuery);
-        when(authQuery.setParameter("username", username))
+        when(authQuery.setParameter(ParameterConstants.USERNAME, username))
                 .thenReturn(authQuery);
-        when(authQuery.setParameter("password", password))
+        when(authQuery.setParameter(ParameterConstants.PASSWORD, password))
                 .thenReturn(authQuery);
         when(authQuery.uniqueResult())
                 .thenReturn(user);
@@ -95,9 +94,9 @@ class SystemUserDaoImplTest {
 
         assertTrue(isValid);
 
-        verify(session).createQuery(AuthenticationOperations.HQL_VALIDATE, User.class);
-        verify(authQuery).setParameter("username", username);
-        verify(authQuery).setParameter("password", password);
+        verify(session).createQuery(HqlQueryConstants.HQL_USER_VALIDATE, User.class);
+        verify(authQuery).setParameter(ParameterConstants.USERNAME, username);
+        verify(authQuery).setParameter(ParameterConstants.PASSWORD, password);
         verify(authQuery).uniqueResult();
     }
 
@@ -106,11 +105,11 @@ class SystemUserDaoImplTest {
         String username = "user";
         String password = "wrongpass";
 
-        when(session.createQuery(AuthenticationOperations.HQL_VALIDATE, User.class))
+        when(session.createQuery(HqlQueryConstants.HQL_USER_VALIDATE, User.class))
                 .thenReturn(authQuery);
-        when(authQuery.setParameter("username", username))
+        when(authQuery.setParameter(ParameterConstants.USERNAME, username))
                 .thenReturn(authQuery);
-        when(authQuery.setParameter("password", password))
+        when(authQuery.setParameter(ParameterConstants.PASSWORD, password))
                 .thenReturn(authQuery);
         when(authQuery.uniqueResult())
                 .thenReturn(null);
@@ -125,7 +124,7 @@ class SystemUserDaoImplTest {
         String username = "user";
         String password = "pass";
 
-        when(session.createQuery(AuthenticationOperations.HQL_VALIDATE, User.class))
+        when(session.createQuery(HqlQueryConstants.HQL_USER_VALIDATE, User.class))
                 .thenThrow(new RuntimeException("DB error"));
 
         DaoException thrown = assertThrows(DaoException.class, () -> dao.validateCredentials(username, password));

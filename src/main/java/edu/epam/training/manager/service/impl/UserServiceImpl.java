@@ -1,6 +1,6 @@
 package edu.epam.training.manager.service.impl;
 
-import edu.epam.training.manager.dao.operations.UserSearchOperations;
+import edu.epam.training.manager.dao.UserManagementDao;
 import edu.epam.training.manager.exception.InvalidStateException;
 import edu.epam.training.manager.service.UserService;
 import edu.epam.training.manager.utils.generation.UsernameGenerator;
@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.Set;
-
 
 @Component
 @Setter
@@ -29,12 +28,12 @@ public class UserServiceImpl implements UserService {
     private static final String ERR_GENERATE_USERNAME  =
             SERVICE_NAME + ": Could not generate unique username after %d attempts";
 
-    private final UserSearchOperations userSearchOperations;
+    private final UserManagementDao userManagementDao;
     private final UsernameGenerator usernameGenerator;
     private static final int MAX_ATTEMPTS = 250;
 
-    public UserServiceImpl(UserSearchOperations userSearchOperations, UsernameGenerator usernameGenerator) {
-        this.userSearchOperations = userSearchOperations;
+    public UserServiceImpl(UserManagementDao userManagementDao, UsernameGenerator usernameGenerator) {
+        this.userManagementDao = userManagementDao;
         this.usernameGenerator = usernameGenerator;
     }
 
@@ -43,7 +42,7 @@ public class UserServiceImpl implements UserService {
         LOGGER.debug(LOG_GENERATE_START, firstName, lastName);
 
         String baseUsername = usernameGenerator.generateBaseUsername(firstName, lastName);
-        Set<String> existingUsernames = new HashSet<>(userSearchOperations.findUsernamesWithPrefix(baseUsername));
+        Set<String> existingUsernames = new HashSet<>(userManagementDao.findUsernamesWithPrefix(baseUsername));
 
         return usernameGenerator.generateCandidates(baseUsername, MAX_ATTEMPTS).stream()
                 .peek(candidate -> LOGGER.debug(LOG_TRY_CANDIDATE, candidate))

@@ -1,7 +1,7 @@
 package edu.epam.training.manager.domain;
 
-import edu.epam.training.manager.domain.common.HasUser;
-import edu.epam.training.manager.domain.base.BaseEntity;
+import edu.epam.training.manager.constants.EntityConstants;
+import edu.epam.training.manager.domain.base.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -15,24 +15,20 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class Trainer extends BaseEntity<Long> implements HasUser {
+public class Trainer extends UserEntity<Long> {
 
     @OneToOne
-    @JoinColumn(name = "specialization", unique = true)
+    @JoinColumn(name = EntityConstants.COL_SPECIALIZATION, unique = true)
     private TrainingType specialization;
 
-    @OneToOne
-    @JoinColumn(name = "user_id", unique = true)
-    private User user;
-
-    @OneToMany(mappedBy = "trainer")
+    @OneToMany(mappedBy = EntityConstants.TABLE_TRAINER)
     private final Set<Training> trainings = new HashSet<>();
 
     @ManyToMany
     @JoinTable(
-            name = "trainer_trainee",
-            joinColumns = @JoinColumn(name = "trainer_id"),
-            inverseJoinColumns = @JoinColumn(name = "trainee_id")
+            name = EntityConstants.TABLE_TRAINER_TRAINEE,
+            joinColumns = @JoinColumn(name = EntityConstants.COL_TRAINER_ID),
+            inverseJoinColumns = @JoinColumn(name = EntityConstants.COL_TRAINEE_ID)
     )
     private final Set<Trainee> trainees = new HashSet<>();
 

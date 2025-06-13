@@ -1,5 +1,6 @@
 package edu.epam.training.manager.domain;
 
+import edu.epam.training.manager.constants.EntityConstants;
 import edu.epam.training.manager.domain.base.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,7 +11,6 @@ import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 
-
 @Entity
 @Data
 @SuperBuilder
@@ -18,24 +18,24 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class Training extends BaseEntity<Long> {
-    @Column(name="training_name", nullable = false)
+    @Column(name= EntityConstants.COL_TRAINING_NAME, nullable = false)
     private String trainingName;
 
     @ManyToOne
-    @JoinColumn(name = "training_type_id", nullable = false)
+    @JoinColumn(name = EntityConstants.COL_TRAINING_TYPE_ID, nullable = false)
     private TrainingType trainingType;
 
     @ManyToOne
-    @JoinColumn(name = "trainer_id", nullable = false)
+    @JoinColumn(name = EntityConstants.COL_TRAINER_ID, nullable = false)
     private Trainer trainer;
 
     @ManyToOne
-    @JoinColumn(name = "trainee_id", nullable = false)
+    @JoinColumn(name = EntityConstants.COL_TRAINEE_ID, nullable = false)
     private Trainee trainee;
 
-    @Column(name="training_date", nullable = false)
+    @Column(name=EntityConstants.COL_TRAINING_DATE, nullable = false)
     private LocalDate trainingDate;
 
-    @Column(name="training_duration", nullable = false)
+    @Column(name=EntityConstants.COL_TRAINING_DURATION, nullable = false)
     private Integer trainingDuration;
 }

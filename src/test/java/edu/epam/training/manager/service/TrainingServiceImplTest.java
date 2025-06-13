@@ -1,7 +1,8 @@
 package edu.epam.training.manager.service;
 
-import edu.epam.training.manager.dao.TrainingDao;
+import edu.epam.training.manager.dao.operations.CreateDao;
 import edu.epam.training.manager.domain.*;
+import edu.epam.training.manager.dto.Credentials;
 import edu.epam.training.manager.exception.InvalidStateException;
 import edu.epam.training.manager.service.impl.TrainingServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -20,9 +21,9 @@ import static org.mockito.Mockito.*;
 class TrainingServiceImplTest {
 
     @Mock
-    private TrainingDao trainingDao;
+    private CreateDao<Training, Long> trainingDao;
     @Mock
-    private AuthService authService;
+    private AuthenticationService authenticationService;
     @Mock
     private TraineeService traineeService;
     @Mock
@@ -35,6 +36,7 @@ class TrainingServiceImplTest {
     void addTraining_success() {
         String authUser = "admin";
         String authPass = "adminPass";
+        Credentials credentials = new Credentials(authUser, authPass);
 
         Long traineeId = 1L;
         Long trainerId = 2L;
@@ -67,18 +69,18 @@ class TrainingServiceImplTest {
                 .trainingType(type)
                 .build();
 
-        doNothing().when(authService).authenticateCredentials(authUser, authPass);
-        when(traineeService.findById(traineeId)).thenReturn(trainee);
-        when(trainerService.findById(trainerId)).thenReturn(trainer);
+        doNothing().when(authenticationService).authenticateCredentials(credentials);
+        when(traineeService.findById(credentials, traineeId)).thenReturn(trainee);
+        when(trainerService.findById(credentials, trainerId)).thenReturn(trainer);
         when(trainingDao.create(any(Training.class))).thenReturn(expectedTraining);
 
-        Training result = trainingService.addTraining(authUser, authPass, trainingInput);
+        Training result = trainingService.addTraining(credentials, trainingInput);
 
         assertEquals(expectedTraining, result);
 
-        verify(authService).authenticateCredentials(authUser, authPass);
-        verify(traineeService).findById(traineeId);
-        verify(trainerService).findById(trainerId);
+        verify(authenticationService).authenticateCredentials(credentials);
+        verify(traineeService).findById(credentials, traineeId);
+        verify(trainerService).findById(credentials, trainerId);
         verify(trainingDao).create(any(Training.class));
     }
 
@@ -86,6 +88,7 @@ class TrainingServiceImplTest {
     void addTraining_invalidTrainerSpecialization_throws() {
         String authUser = "admin";
         String authPass = "adminPass";
+        Credentials credentials = new Credentials(authUser, authPass);
 
         Long traineeId = 1L;
         Long trainerId = 2L;
@@ -113,17 +116,17 @@ class TrainingServiceImplTest {
                 .trainingType(trainingType)
                 .build();
 
-        doNothing().when(authService).authenticateCredentials(authUser, authPass);
-        when(traineeService.findById(traineeId)).thenReturn(trainee);
-        when(trainerService.findById(trainerId)).thenReturn(trainer);
+        doNothing().when(authenticationService).authenticateCredentials(credentials);
+        when(traineeService.findById(credentials, traineeId)).thenReturn(trainee);
+        when(trainerService.findById(credentials, trainerId)).thenReturn(trainer);
 
-        InvalidStateException ex = assertThrows(InvalidStateException.class, () -> trainingService.addTraining(authUser, authPass, trainingInput));
+        InvalidStateException ex = assertThrows(InvalidStateException.class, () -> trainingService.addTraining(credentials, trainingInput));
 
         assertTrue(ex.getMessage().contains("Trainer specialization"));
 
-        verify(authService).authenticateCredentials(authUser, authPass);
-        verify(traineeService).findById(traineeId);
-        verify(trainerService).findById(trainerId);
+        verify(authenticationService).authenticateCredentials(credentials);
+        verify(traineeService).findById(credentials, traineeId);
+        verify(trainerService).findById(credentials, trainerId);
         verify(trainingDao, never()).create(any());
     }
 }

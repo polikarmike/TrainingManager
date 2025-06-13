@@ -1,7 +1,7 @@
 package edu.epam.training.manager.domain;
 
-import edu.epam.training.manager.domain.common.HasUser;
-import edu.epam.training.manager.domain.base.BaseEntity;
+import edu.epam.training.manager.constants.EntityConstants;
+import edu.epam.training.manager.domain.base.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -16,24 +16,20 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class Trainee extends BaseEntity<Long> implements HasUser {
-    @Column(name = "date_of_birth")
+public class Trainee extends UserEntity<Long> {
+    @Column(name = EntityConstants.COL_DATE_OF_BIRTH)
     private LocalDate dateOfBirth;
     private String address;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id", unique = true)
-    private User user;
-
     @ManyToMany
     @JoinTable(
-            name = "trainer_trainee",
-            joinColumns = @JoinColumn(name = "trainee_id"),
-            inverseJoinColumns = @JoinColumn(name = "trainer_id")
+            name = EntityConstants.TABLE_TRAINER_TRAINEE,
+            joinColumns = @JoinColumn(name = EntityConstants.COL_TRAINEE_ID),
+            inverseJoinColumns = @JoinColumn(name = EntityConstants.COL_TRAINER_ID)
     )
     private final Set<Trainer> trainers = new HashSet<>();
 
-    @OneToMany(mappedBy = "trainee", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = EntityConstants.TABLE_TRAINEE, cascade = CascadeType.REMOVE, orphanRemoval = true)
     private final Set<Training> trainings = new HashSet<>();
 
     @Override

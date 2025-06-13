@@ -1,6 +1,6 @@
 package edu.epam.training.manager.service;
 
-import edu.epam.training.manager.dao.operations.UserSearchOperations;
+import edu.epam.training.manager.dao.UserManagementDao;
 import edu.epam.training.manager.exception.InvalidStateException;
 import edu.epam.training.manager.service.impl.UserServiceImpl;
 import edu.epam.training.manager.utils.generation.UsernameGenerator;
@@ -14,15 +14,15 @@ import static org.mockito.Mockito.*;
 
 class UserServiceImplTest {
 
-    private UserSearchOperations userSearchOperations;
+    private UserManagementDao userManagementDao;
     private UsernameGenerator usernameGenerator;
     private UserServiceImpl userService;
 
     @BeforeEach
     void setUp() {
-        userSearchOperations = mock(UserSearchOperations.class);
+        userManagementDao = mock(UserManagementDao.class);
         usernameGenerator = mock(UsernameGenerator.class);
-        userService = new UserServiceImpl(userSearchOperations, usernameGenerator);
+        userService = new UserServiceImpl(userManagementDao, usernameGenerator);
     }
 
     @Test
@@ -32,7 +32,7 @@ class UserServiceImplTest {
         String baseUsername = "jdoe";
 
         when(usernameGenerator.generateBaseUsername(firstName, lastName)).thenReturn(baseUsername);
-        when(userSearchOperations.findUsernamesWithPrefix(baseUsername)).thenReturn(List.of("jdoe", "jdoe1"));
+        when(userManagementDao.findUsernamesWithPrefix(baseUsername)).thenReturn(List.of("jdoe", "jdoe1"));
         when(usernameGenerator.generateCandidates(eq(baseUsername), anyInt()))
                 .thenReturn(List.of("jdoe", "jdoe1", "jdoe2", "jdoe3"));
 
@@ -40,7 +40,7 @@ class UserServiceImplTest {
 
         assertEquals("jdoe2", result);
         verify(usernameGenerator).generateBaseUsername(firstName, lastName);
-        verify(userSearchOperations).findUsernamesWithPrefix(baseUsername);
+        verify(userManagementDao).findUsernamesWithPrefix(baseUsername);
         verify(usernameGenerator).generateCandidates(baseUsername, 250);
     }
 
@@ -53,7 +53,7 @@ class UserServiceImplTest {
         List<String> allTaken = List.of("jsmith", "jsmith1", "jsmith2");
 
         when(usernameGenerator.generateBaseUsername(firstName, lastName)).thenReturn(baseUsername);
-        when(userSearchOperations.findUsernamesWithPrefix(baseUsername)).thenReturn(allTaken);
+        when(userManagementDao.findUsernamesWithPrefix(baseUsername)).thenReturn(allTaken);
         when(usernameGenerator.generateCandidates(eq(baseUsername), anyInt()))
                 .thenReturn(allTaken);
 
@@ -63,7 +63,7 @@ class UserServiceImplTest {
 
         assertTrue(exception.getMessage().contains("Could not generate unique username"));
         verify(usernameGenerator).generateBaseUsername(firstName, lastName);
-        verify(userSearchOperations).findUsernamesWithPrefix(baseUsername);
+        verify(userManagementDao).findUsernamesWithPrefix(baseUsername);
         verify(usernameGenerator).generateCandidates(baseUsername, 250);
     }
 }

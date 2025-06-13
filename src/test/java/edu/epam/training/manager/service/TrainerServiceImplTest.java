@@ -5,6 +5,7 @@ import edu.epam.training.manager.domain.Trainer;
 import edu.epam.training.manager.domain.Training;
 import edu.epam.training.manager.domain.TrainingType;
 import edu.epam.training.manager.domain.User;
+import edu.epam.training.manager.dto.Credentials;
 import edu.epam.training.manager.exception.EntityNotFoundException;
 import edu.epam.training.manager.service.impl.TrainerServiceImpl;
 import edu.epam.training.manager.utils.generation.PasswordGenerator;
@@ -28,7 +29,7 @@ import static org.mockito.Mockito.*;
 class TrainerServiceImplTest {
 
     @Mock
-    private AuthService authService;
+    private AuthenticationService authenticationService;
 
     @Mock
     private TrainerDao trainerDao;
@@ -95,6 +96,8 @@ class TrainerServiceImplTest {
         String authPass = "pass";
         long trainerId = 1L;
 
+        Credentials credentials = new Credentials(authUser, authPass);
+
         Trainer trainerInput = Trainer.builder()
                 .id(trainerId)
                 .user(User.builder()
@@ -120,9 +123,9 @@ class TrainerServiceImplTest {
         when(trainerDao.findById(trainerId)).thenReturn(Optional.of(existingTrainer));
         when(trainerDao.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Trainer result = trainerService.updateProfile(authUser, authPass, trainerInput);
+        Trainer result = trainerService.updateProfile(credentials, trainerInput);
 
-        verify(authService).authenticateCredentials(authUser, authPass);
+        verify(authenticationService, times(2)).authenticateCredentials(credentials);
         assertEquals("Jane", result.getUser().getFirstName());
         assertEquals("Doe", result.getUser().getLastName());
         assertFalse(result.getUser().isActive());
@@ -131,18 +134,28 @@ class TrainerServiceImplTest {
 
     @Test
     void updateProfile_trainerNotFound_throwsException() {
+        String authUser = "admin";
+        String authPass = "pass";
+
+        Credentials credentials = new Credentials(authUser, authPass);
+
         when(trainerDao.findById(99L)).thenReturn(Optional.empty());
         Trainer trainer = Trainer.builder().id(99L).user(User.builder().build()).build();
 
         EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
-                () -> trainerService.updateProfile("admin", "pass", trainer));
+                () -> trainerService.updateProfile(credentials, trainer));
 
-        assertTrue(ex.getMessage().contains("No trainer found with ID"));
+        assertTrue(ex.getMessage().contains("Entity with ID '99' not found"));
         verify(trainerDao).findById(99L);
     }
 
     @Test
     void findUnassignedTrainers_success() {
+        String authUser = "admin";
+        String authPass = "pass";
+
+        Credentials credentials = new Credentials(authUser, authPass);
+
         List<Trainer> trainers = List.of(
                 Trainer.builder().id(1L).build(),
                 Trainer.builder().id(2L).build()
@@ -150,15 +163,20 @@ class TrainerServiceImplTest {
 
         when(trainerDao.findUnassignedTrainers()).thenReturn(trainers);
 
-        List<Trainer> result = trainerService.findUnassignedTrainers("admin", "adminPass");
+        List<Trainer> result = trainerService.findUnassignedTrainers(credentials);
 
-        verify(authService).authenticateCredentials("admin", "adminPass");
+        verify(authenticationService).authenticateCredentials(credentials);
         verify(trainerDao).findUnassignedTrainers();
         assertEquals(2, result.size());
     }
 
     @Test
     void getTrainerTrainings_success() {
+        String authUser = "admin";
+        String authPass = "pass";
+
+        Credentials credentials = new Credentials(authUser, authPass);
+
         String trainerUsername = "trainer1";
         LocalDate from = LocalDate.of(2023, 1, 1);
         LocalDate to = LocalDate.of(2023, 12, 31);
@@ -171,19 +189,21 @@ class TrainerServiceImplTest {
 
         when(trainerDao.getTrainerTrainings(trainerUsername, from, to, trainee)).thenReturn(trainings);
 
-        List<Training> result = trainerService.getTrainerTrainings("admin", "adminPass",
+        List<Training> result = trainerService.getTrainerTrainings(credentials,
                 trainerUsername, from, to, trainee);
 
-        verify(authService).authenticateCredentials("admin", "adminPass");
+        verify(authenticationService).authenticateCredentials(credentials);
         verify(trainerDao).getTrainerTrainings(trainerUsername, from, to, trainee);
         assertEquals(2, result.size());
     }
 
     @Test
     void findByUsername_success() {
-        String adminUser = "admin";
-        String adminPass = "adminPass";
+        String authUser = "admin";
+        String authPass = "pass";
         String username = "trainer1";
+
+        Credentials credentials = new Credentials(authUser, authPass);
 
         User user = User.builder()
                 .firstName("Alice")
@@ -198,13 +218,13 @@ class TrainerServiceImplTest {
                 .specialization(new TrainingType())
                 .build();
 
-        doNothing().when(authService).authenticateCredentials(adminUser, adminPass);
+        doNothing().when(authenticationService).authenticateCredentials(credentials);
         when(trainerDao.findByUsername(username)).thenReturn(Optional.of(trainer));
 
-        Trainer result = trainerService.findByUsername(adminUser, adminPass, username);
+        Trainer result = trainerService.findByUsername(credentials, username);
 
         assertEquals(trainer, result);
-        verify(authService).authenticateCredentials(adminUser, adminPass);
+        verify(authenticationService).authenticateCredentials(credentials);
         verify(trainerDao).findByUsername(username);
     }
 
@@ -214,18 +234,24 @@ class TrainerServiceImplTest {
         String adminPass = "adminPass";
         String username = "notExist";
 
-        doNothing().when(authService).authenticateCredentials(adminUser, adminPass);
+        Credentials credentials = new Credentials(adminUser, adminPass);
+
+        doNothing().when(authenticationService).authenticateCredentials(credentials);
         when(trainerDao.findByUsername(username)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> trainerService.findByUsername(adminUser, adminPass, username));
+        assertThrows(EntityNotFoundException.class, () -> trainerService.findByUsername(credentials, username));
 
-        verify(authService).authenticateCredentials(adminUser, adminPass);
+        verify(authenticationService).authenticateCredentials(credentials);
         verify(trainerDao).findByUsername(username);
     }
 
     @Test
     void findById_success() {
+        String authUser = "authUser";
+        String authPass = "authPass";
         Long id = 42L;
+
+        Credentials credentials = new Credentials(authUser, authPass);
 
         User user = User.builder()
                 .firstName("Emily")
@@ -242,7 +268,7 @@ class TrainerServiceImplTest {
 
         when(trainerDao.findById(id)).thenReturn(Optional.of(trainer));
 
-        Trainer found = trainerService.findById(id);
+        Trainer found = trainerService.findById(credentials, id);
 
         assertEquals(trainer, found);
         verify(trainerDao).findById(id);
@@ -250,10 +276,15 @@ class TrainerServiceImplTest {
 
     @Test
     void findById_notFound_throws() {
+        String authUser = "authUser";
+        String authPass = "authPass";
         Long id = 404L;
+
+        Credentials credentials = new Credentials(authUser, authPass);
+
         when(trainerDao.findById(id)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> trainerService.findById(id));
+        assertThrows(EntityNotFoundException.class, () -> trainerService.findById(credentials, id));
 
         verify(trainerDao).findById(id);
     }
@@ -263,6 +294,8 @@ class TrainerServiceImplTest {
         String adminUser = "admin";
         String adminPass = "adminPass";
         String username = "trainer1";
+
+        Credentials credentials = new Credentials(adminUser, adminPass);
 
         User user = User.builder()
                 .firstName("Tom")
@@ -277,17 +310,17 @@ class TrainerServiceImplTest {
                 .specialization(new TrainingType())
                 .build();
 
-        doNothing().when(authService).authenticateCredentials(adminUser, adminPass);
+        doNothing().when(authenticationService).authenticateCredentials(credentials);
         when(trainerDao.findByUsername(username)).thenReturn(Optional.of(trainer));
         when(trainerDao.getSessionFactory()).thenReturn(sessionFactory);
         when(sessionFactory.getCurrentSession()).thenReturn(session);
         when(session.merge(user)).thenReturn(user);
 
-        trainerService.toggleActiveStatus(adminUser, adminPass, username);
+        trainerService.toggleActiveStatus(credentials, username);
 
         assertFalse(user.isActive());
 
-        verify(authService, times(2)).authenticateCredentials(adminUser, adminPass);
+        verify(authenticationService, times(2)).authenticateCredentials(credentials);
         verify(trainerDao).findByUsername(username);
         verify(session).merge(user);
     }
@@ -297,6 +330,8 @@ class TrainerServiceImplTest {
         String adminUser = "admin";
         String adminPass = "adminPass";
         String username = "trainer1";
+
+        Credentials credentials = new Credentials(adminUser, adminPass);
 
         User user = User.builder()
                 .firstName("Sam")
@@ -313,19 +348,19 @@ class TrainerServiceImplTest {
 
         String newPassword = "newStrongPass";
 
-        doNothing().when(authService).authenticateCredentials(adminUser, adminPass);
+        doNothing().when(authenticationService).authenticateCredentials(credentials);
         when(trainerDao.findByUsername(username)).thenReturn(Optional.of(trainer));
         when(passwordGenerator.generate()).thenReturn(newPassword);
         when(trainerDao.getSessionFactory()).thenReturn(sessionFactory);
         when(sessionFactory.getCurrentSession()).thenReturn(session);
         when(session.merge(user)).thenReturn(user);
 
-        String resultPassword = trainerService.changePassword(adminUser, adminPass, username);
+        String resultPassword = trainerService.changePassword(credentials, username);
 
         assertEquals(newPassword, resultPassword);
         assertEquals(newPassword, user.getPassword());
 
-        verify(authService, times(2)).authenticateCredentials(adminUser, adminPass);
+        verify(authenticationService, times(2)).authenticateCredentials(credentials);
         verify(trainerDao).findByUsername(username);
         verify(passwordGenerator).generate();
         verify(session).merge(user);

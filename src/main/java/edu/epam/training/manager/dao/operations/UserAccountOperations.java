@@ -1,7 +1,8 @@
 package edu.epam.training.manager.dao.operations;
 
-import edu.epam.training.manager.domain.common.HasUser;
-import edu.epam.training.manager.domain.base.BaseEntity;
+import edu.epam.training.manager.constants.ParameterConstants;
+import edu.epam.training.manager.dao.HqlQueryConstants;
+import edu.epam.training.manager.domain.base.UserEntity;
 import edu.epam.training.manager.exception.base.DaoException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -10,11 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
-public interface UserAccountOperations<T extends BaseEntity<ID> & HasUser, ID> {
+public interface UserAccountOperations<T extends UserEntity<ID>, ID> {
     Logger LOGGER = LoggerFactory.getLogger(UserAccountOperations.class);
-
-    String HQL_FIND_BY_USERNAME =
-            "FROM %s e WHERE e.user.username = :username";
 
     String LOG_SEARCH_USERNAME           = "{}: DAO Searching by username - {}";
     String LOG_SEARCH_USERNAME_ERROR     = "{}: DAO Error fetching by username {}: {}";
@@ -29,9 +27,9 @@ public interface UserAccountOperations<T extends BaseEntity<ID> & HasUser, ID> {
 
         try {
             Session session = getSessionFactory().getCurrentSession();
-            String hql = String.format(HQL_FIND_BY_USERNAME, entityName);
+            String hql = String.format(HqlQueryConstants.HQL_USER_FIND_BY_USERNAME, entityName);
             var query = session.createQuery(hql, getEntityClass())
-                    .setParameter("username", username);
+                    .setParameter(ParameterConstants.USERNAME, username);
 
             return query.uniqueResultOptional();
 

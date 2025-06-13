@@ -1,7 +1,7 @@
 package edu.epam.training.manager.dao;
 
+import edu.epam.training.manager.constants.ParameterConstants;
 import edu.epam.training.manager.dao.impl.TrainerDaoImpl;
-import edu.epam.training.manager.dao.operations.TrainerDaoOperations;
 import edu.epam.training.manager.domain.Trainer;
 import edu.epam.training.manager.domain.TrainingType;
 import edu.epam.training.manager.domain.User;
@@ -144,7 +144,7 @@ class TrainerDaoImplTest {
 
         Query<Trainer> query = mock(Query.class);
         when(session.createQuery(anyString(), eq(Trainer.class))).thenReturn(query);
-        when(query.setParameter("username", "john")).thenReturn(query);
+        when(query.setParameter(ParameterConstants.USERNAME, "john")).thenReturn(query);
         when(query.uniqueResultOptional()).thenReturn(Optional.of(expectedTrainer));
 
         Optional<Trainer> result = trainerDao.findByUsername("john");
@@ -174,7 +174,7 @@ class TrainerDaoImplTest {
         assertTrue(result.contains(trainer1));
         assertTrue(result.contains(trainer2));
 
-        verify(session).createQuery(TrainerDaoOperations.HQL_FIND_UNASSIGNED, Trainer.class);
+        verify(session).createQuery("SELECT t FROM Trainer t WHERE t.trainees IS EMPTY", Trainer.class);
         verify(query).getResultList();
     }
 

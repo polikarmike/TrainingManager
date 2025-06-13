@@ -1,5 +1,6 @@
 package edu.epam.training.manager.dao;
 
+import edu.epam.training.manager.constants.ParameterConstants;
 import edu.epam.training.manager.dao.impl.TraineeDaoImpl;
 import edu.epam.training.manager.dao.operations.helpers.TrainingQueryHelper;
 import edu.epam.training.manager.domain.Trainee;
@@ -178,7 +179,7 @@ class TraineeDaoImplTest {
 
         Query<Trainee> query = mock(Query.class);
         when(session.createQuery(anyString(), eq(Trainee.class))).thenReturn(query);
-        when(query.setParameter("username", "john")).thenReturn(query);
+        when(query.setParameter(ParameterConstants.USERNAME, "john")).thenReturn(query);
         when(query.uniqueResultOptional()).thenReturn(Optional.of(expectedTrainee));
 
         Optional<Trainee> result = traineeDao.findByUsername("john");
@@ -193,8 +194,8 @@ class TraineeDaoImplTest {
 
         try (MockedStatic<TrainingQueryHelper> helperMock = mockStatic(TrainingQueryHelper.class)) {
             helperMock.when(() -> TrainingQueryHelper.fetchTrainings(
-                    any(), eq("trainee"), eq("alice"),
-                    eq("trainer"), eq("bob"),
+                    any(), eq(ParameterConstants.ROLE_TRAINEE), eq("alice"),
+                    eq(ParameterConstants.ROLE_TRAINER), eq("bob"),
                     eq("Cardio"), any(), any())
             ).thenReturn(expectedTrainings);
 

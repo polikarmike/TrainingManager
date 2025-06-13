@@ -3,6 +3,7 @@ package edu.epam.training.manager.facade;
 import edu.epam.training.manager.domain.Trainee;
 import edu.epam.training.manager.domain.Trainer;
 import edu.epam.training.manager.domain.Training;
+import edu.epam.training.manager.dto.Credentials;
 import edu.epam.training.manager.service.TraineeService;
 import edu.epam.training.manager.service.TrainerService;
 import edu.epam.training.manager.service.TrainingService;
@@ -51,12 +52,14 @@ class GymFacadeTest {
         Trainee traineeUpdate = new Trainee();
         Trainee updated = new Trainee();
 
-        when(traineeService.updateProfile(username, password, traineeUpdate)).thenReturn(updated);
+        Credentials credentials = new Credentials(username, password);
 
-        Trainee result = gymFacade.updateTrainee(username, password, traineeUpdate);
+        when(traineeService.updateProfile(credentials, traineeUpdate)).thenReturn(updated);
+
+        Trainee result = gymFacade.updateTrainee(credentials, traineeUpdate);
 
         assertEquals(updated, result);
-        verify(traineeService).updateProfile(username, password, traineeUpdate);
+        verify(traineeService).updateProfile(credentials, traineeUpdate);
     }
 
     @Test
@@ -65,11 +68,13 @@ class GymFacadeTest {
         String authPass = "authPass";
         String username = "userToDelete";
 
-        doNothing().when(traineeService).delete(authUser, authPass, username);
+        Credentials credentials = new Credentials(authUser, authPass);
 
-        gymFacade.deleteTrainee(authUser, authPass, username);
+        doNothing().when(traineeService).delete(credentials, username);
 
-        verify(traineeService).delete(authUser, authPass, username);
+        gymFacade.deleteTrainee(credentials, username);
+
+        verify(traineeService).delete(credentials, username);
     }
 
     @Test
@@ -79,25 +84,31 @@ class GymFacadeTest {
         String username = "user1";
         Trainee trainee = new Trainee();
 
-        when(traineeService.findByUsername(authUser, authPass, username)).thenReturn(trainee);
+        Credentials credentials = new Credentials(authUser, authPass);
 
-        Trainee result = gymFacade.getTraineeByUsername(authUser, authPass, username);
+        when(traineeService.findByUsername(credentials, username)).thenReturn(trainee);
+
+        Trainee result = gymFacade.getTraineeByUsername(credentials, username);
 
         assertEquals(trainee, result);
-        verify(traineeService).findByUsername(authUser, authPass, username);
+        verify(traineeService).findByUsername(credentials, username);
     }
 
     @Test
     void getTraineeById_callsFindById() {
+        String authUser = "authUser";
+        String authPass = "authPass";
         Long id = 123L;
         Trainee trainee = new Trainee();
 
-        when(traineeService.findById(id)).thenReturn(trainee);
+        Credentials credentials = new Credentials(authUser, authPass);
 
-        Trainee result = gymFacade.getTraineeById(id);
+        when(traineeService.findById(credentials, id)).thenReturn(trainee);
+
+        Trainee result = gymFacade.getTraineeById(credentials, id);
 
         assertEquals(trainee, result);
-        verify(traineeService).findById(id);
+        verify(traineeService).findById(credentials, id);
     }
 
     @Test
@@ -106,11 +117,13 @@ class GymFacadeTest {
         String authPass = "authPass";
         String username = "user1";
 
-        doNothing().when(traineeService).toggleActiveStatus(authUser, authPass, username);
+        Credentials credentials = new Credentials(authUser, authPass);
 
-        gymFacade.toggleTraineeStatus(authUser, authPass, username);
+        doNothing().when(traineeService).toggleActiveStatus(credentials, username);
 
-        verify(traineeService).toggleActiveStatus(authUser, authPass, username);
+        gymFacade.toggleTraineeStatus(credentials, username);
+
+        verify(traineeService).toggleActiveStatus(credentials, username);
     }
 
     @Test
@@ -123,15 +136,17 @@ class GymFacadeTest {
         String trainerUsername = "trainer1";
         String trainingType = "CARDIO";
 
+        Credentials credentials = new Credentials(authUser, authPass);
+
         List<Training> expectedTrainings = List.of(new Training());
 
-        when(traineeService.getTraineeTrainings(authUser, authPass, username, fromDate, toDate, trainerUsername, trainingType))
+        when(traineeService.getTraineeTrainings(credentials, username, fromDate, toDate, trainerUsername, trainingType))
                 .thenReturn(expectedTrainings);
 
-        List<Training> result = gymFacade.getTraineeTrainings(authUser, authPass, username, fromDate, toDate, trainerUsername, trainingType);
+        List<Training> result = gymFacade.getTraineeTrainings(credentials, username, fromDate, toDate, trainerUsername, trainingType);
 
         assertEquals(expectedTrainings, result);
-        verify(traineeService).getTraineeTrainings(authUser, authPass, username, fromDate, toDate, trainerUsername, trainingType);
+        verify(traineeService).getTraineeTrainings(credentials, username, fromDate, toDate, trainerUsername, trainingType);
     }
 
     @Test
@@ -141,12 +156,14 @@ class GymFacadeTest {
         String username = "user1";
         String newPassword = "newPass";
 
-        when(traineeService.changePassword(authUser, authPass, username)).thenReturn(newPassword);
+        Credentials credentials = new Credentials(authUser, authPass);
 
-        String result = gymFacade.changeTraineePassword(authUser, authPass, username);
+        when(traineeService.changePassword(credentials, username)).thenReturn(newPassword);
+
+        String result = gymFacade.changeTraineePassword(credentials, username);
 
         assertEquals(newPassword, result);
-        verify(traineeService).changePassword(authUser, authPass, username);
+        verify(traineeService).changePassword(credentials, username);
     }
 
     @Test
@@ -167,12 +184,14 @@ class GymFacadeTest {
         Trainer trainerUpdate = new Trainer();
         Trainer updated = new Trainer();
 
-        when(trainerService.updateProfile(username, password, trainerUpdate)).thenReturn(updated);
+        Credentials credentials = new Credentials(username, password);
 
-        Trainer result = gymFacade.updateTrainer(username, password, trainerUpdate);
+        when(trainerService.updateProfile(credentials, trainerUpdate)).thenReturn(updated);
+
+        Trainer result = gymFacade.updateTrainer(credentials, trainerUpdate);
 
         assertEquals(updated, result);
-        verify(trainerService).updateProfile(username, password, trainerUpdate);
+        verify(trainerService).updateProfile(credentials, trainerUpdate);
     }
 
     @Test
@@ -182,25 +201,31 @@ class GymFacadeTest {
         String username = "trainer1";
         Trainer trainer = new Trainer();
 
-        when(trainerService.findByUsername(authUser, authPass, username)).thenReturn(trainer);
+        Credentials credentials = new Credentials(authUser, authPass);
 
-        Trainer result = gymFacade.getTrainerByUsername(authUser, authPass, username);
+        when(trainerService.findByUsername(credentials, username)).thenReturn(trainer);
+
+        Trainer result = gymFacade.getTrainerByUsername(credentials, username);
 
         assertEquals(trainer, result);
-        verify(trainerService).findByUsername(authUser, authPass, username);
+        verify(trainerService).findByUsername(credentials, username);
     }
 
     @Test
     void getTrainerById_callsFindById() {
+        String authUser = "authUser";
+        String authPass = "authPass";
         Long id = 123L;
         Trainer trainer = new Trainer();
 
-        when(trainerService.findById(id)).thenReturn(trainer);
+        Credentials credentials = new Credentials(authUser, authPass);
 
-        Trainer result = gymFacade.getTrainerById(id);
+        when(trainerService.findById(credentials, id)).thenReturn(trainer);
+
+        Trainer result = gymFacade.getTrainerById(credentials, id);
 
         assertEquals(trainer, result);
-        verify(trainerService).findById(id);
+        verify(trainerService).findById(credentials, id);
     }
 
     @Test
@@ -209,11 +234,13 @@ class GymFacadeTest {
         String authPass = "authPass";
         String username = "trainerUser";
 
-        doNothing().when(trainerService).toggleActiveStatus(authUser, authPass, username);
+        Credentials credentials = new Credentials(authUser, authPass);
 
-        gymFacade.toggleTrainerStatus(authUser, authPass, username);
+        doNothing().when(trainerService).toggleActiveStatus(credentials, username);
 
-        verify(trainerService).toggleActiveStatus(authUser, authPass, username);
+        gymFacade.toggleTrainerStatus(credentials, username);
+
+        verify(trainerService).toggleActiveStatus(credentials, username);
     }
 
     @Test
@@ -225,15 +252,17 @@ class GymFacadeTest {
         LocalDate toDate = LocalDate.of(2025, 12, 31);
         String traineeUsername = "trainee1";
 
+        Credentials credentials = new Credentials(authUser, authPass);
+
         List<Training> expectedTrainings = List.of(new Training());
 
-        when(trainerService.getTrainerTrainings(authUser, authPass, username, fromDate, toDate, traineeUsername))
+        when(trainerService.getTrainerTrainings(credentials, username, fromDate, toDate, traineeUsername))
                 .thenReturn(expectedTrainings);
 
-        List<Training> result = gymFacade.getTrainerTrainings(authUser, authPass, username, fromDate, toDate, traineeUsername);
+        List<Training> result = gymFacade.getTrainerTrainings(credentials, username, fromDate, toDate, traineeUsername);
 
         assertEquals(expectedTrainings, result);
-        verify(trainerService).getTrainerTrainings(authUser, authPass, username, fromDate, toDate, traineeUsername);
+        verify(trainerService).getTrainerTrainings(credentials, username, fromDate, toDate, traineeUsername);
     }
 
     @Test
@@ -243,12 +272,14 @@ class GymFacadeTest {
         String username = "trainer1";
         String newPassword = "newPass";
 
-        when(trainerService.changePassword(authUser, authPass, username)).thenReturn(newPassword);
+        Credentials credentials = new Credentials(authUser, authPass);
 
-        String result = gymFacade.changeTrainerPassword(authUser, authPass, username);
+        when(trainerService.changePassword(credentials, username)).thenReturn(newPassword);
+
+        String result = gymFacade.changeTrainerPassword(credentials, username);
 
         assertEquals(newPassword, result);
-        verify(trainerService).changePassword(authUser, authPass, username);
+        verify(trainerService).changePassword(credentials, username);
     }
 
     @Test
@@ -258,11 +289,13 @@ class GymFacadeTest {
         Training training = new Training();
         Training createdTraining = new Training();
 
-        when(trainingService.addTraining(authUser, authPass, training)).thenReturn(createdTraining);
+        Credentials credentials = new Credentials(authUser, authPass);
 
-        Training result = gymFacade.addTraining(authUser, authPass, training);
+        when(trainingService.addTraining(credentials, training)).thenReturn(createdTraining);
+
+        Training result = gymFacade.addTraining(credentials, training);
 
         assertEquals(createdTraining, result);
-        verify(trainingService).addTraining(authUser, authPass, training);
+        verify(trainingService).addTraining(credentials, training);
     }
 }

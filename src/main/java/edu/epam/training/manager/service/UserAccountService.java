@@ -1,10 +1,12 @@
 package edu.epam.training.manager.service;
 
-import edu.epam.training.manager.domain.common.HasUser;
+import edu.epam.training.manager.dao.operations.CreateDao;
+import edu.epam.training.manager.dao.operations.UpdateDao;
+import edu.epam.training.manager.domain.base.UserEntity;
 import edu.epam.training.manager.dao.operations.ReadDao;
 import edu.epam.training.manager.dao.operations.UserAccountOperations;
 import edu.epam.training.manager.domain.User;
-import edu.epam.training.manager.domain.base.BaseEntity;
+import edu.epam.training.manager.dto.Credentials;
 import edu.epam.training.manager.exception.EntityNotFoundException;
 import edu.epam.training.manager.exception.base.ServiceException;
 import edu.epam.training.manager.utils.generation.PasswordGenerator;
@@ -16,12 +18,18 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 public interface UserAccountService<
-        T extends BaseEntity<ID> & HasUser,
+        T extends UserEntity<ID>,
         ID,
-        D extends UserAccountOperations<T, ID> & ReadDao<T, ID>
+        D extends UserAccountOperations<T, ID> & CreateDao<T, ID> & ReadDao<T, ID> & UpdateDao<T, ID>
         > {
 
     Logger LOGGER = LoggerFactory.getLogger(UserAccountService.class);
+
+    String LOG_CREATE_START = "{}: SERVICE - Creating entity: {} {}";
+    String LOG_CREATE_SUCCESS = "{}: SERVICE - Created entity: {}";
+
+    String LOG_UPDATE_START = "{}: SERVICE - Updating entity ID: {}";
+    String LOG_UPDATE_SUCCESS = "{}: SERVICE - Updated entity ID: {}";
 
     String LOG_SEARCH_BY_USERNAME_START   = "{}: SERVICE - Searching entity by username: {}";
     String LOG_SEARCH_BY_USERNAME_ERROR   = "{}: SERVICE ERROR - Entity with username '{}' not found";
@@ -35,23 +43,82 @@ public interface UserAccountService<
     String LOG_TOGGLE_STATUS_SUCCESS      = "{}: SERVICE - Active status toggled for username: {}";
     String LOG_TOGGLE_STATUS_ERROR        = "{}: SERVICE ERROR - Error toggling active status for username: {}: {}";
 
+    String LOG_CHANGE_PASSWORD_START      = "{}: SERVICE - Changing password for user: {}";
+    String LOG_CHANGE_PASSWORD_SUCCESS    = "{}: SERVICE - Password changed for user: {}";
+    String LOG_CHANGE_PASSWORD_ERROR      = "{}: SERVICE ERROR - Error changing password for user: {}: {}";
+
     String ERR_NOT_FOUND_BY_USERNAME      = "%s: Entity with username '%s' not found.";
     String ERR_NOT_FOUND_BY_ID            = "%s: Entity with ID '%s' not found.";
     String ERR_TOGGLE_STATUS              = "%s: Error toggling active status for '%s'";
+    String ERR_CHANGE_PASSWORD            = "%s: Error changing password for '%s'";
 
     D getDao();
-    AuthService getAuthService();
+    AuthenticationService getAuthService();
     PasswordGenerator getPasswordGenerator();
+    UserService getUserService();
 
-    T createProfile(T item);
-    T updateProfile(String username, String password, T item);
+    T buildProfile(User user, T profile);
+    void updateProfileSpecificFields(T existing, T item);
+
+    @Transactional
+    default T createProfile(T item) {
+        String serviceName = getClass().getSimpleName();
+        LOGGER.debug(LOG_CREATE_START,
+                serviceName,
+                item.getUser().getFirstName(),
+                item.getUser().getLastName()
+        );
+
+        String username = getUserService().generateUniqueUsername(
+                item.getUser().getFirstName(),
+                item.getUser().getLastName()
+        );
+        String password = getPasswordGenerator().generate();
+
+        User newUser = User.builder()
+                .firstName(item.getUser().getFirstName())
+                .lastName(item.getUser().getLastName())
+                .username(username)
+                .password(password)
+                .isActive(true)
+                .build();
+
+        T newEntity = buildProfile(newUser, item);
+        T created = getDao().create(newEntity);
+
+        LOGGER.debug(LOG_CREATE_SUCCESS, serviceName, created);
+        return created;
+    }
+
+    @Transactional
+    default T updateProfile(Credentials authCredentials, T item) {
+        String serviceName = getClass().getSimpleName();
+        LOGGER.debug(LOG_UPDATE_START, serviceName, item.getId());
+
+        getAuthService().authenticateCredentials(authCredentials);
+
+        T existing = findById(authCredentials, item.getId());
+
+        User existingUser = existing.getUser();
+        User newUserData = item.getUser();
+
+        Optional.ofNullable(newUserData.getFirstName()).ifPresent(existingUser::setFirstName);
+        Optional.ofNullable(newUserData.getLastName()).ifPresent(existingUser::setLastName);
+        existingUser.setActive(newUserData.isActive());
+
+        updateProfileSpecificFields(existing, item);
+
+        T updated = getDao().update(existing);
+        LOGGER.debug(LOG_UPDATE_SUCCESS, serviceName, existing.getId());
+        return updated;
+    }
 
     @Transactional(readOnly = true)
-    default T findByUsername(String authUsername, String authPassword, String username) {
+    default T findByUsername(Credentials authCredentials, String username) {
         String serviceName = getClass().getSimpleName();
         LOGGER.debug(LOG_SEARCH_BY_USERNAME_START, serviceName, username);
 
-        getAuthService().authenticateCredentials(authUsername, authPassword);
+        getAuthService().authenticateCredentials(authCredentials);
 
         T item = getDao().findByUsername(username)
                 .orElseThrow(() -> {
@@ -65,9 +132,11 @@ public interface UserAccountService<
     }
 
     @Transactional(readOnly = true)
-    default T findById(ID id) {
+    default T findById(Credentials authCredentials, ID id) {
         String serviceName = getClass().getSimpleName();
         LOGGER.debug(LOG_SEARCH_BY_ID_START, serviceName, id);
+
+        getAuthService().authenticateCredentials(authCredentials);
 
         T item = getDao().findById(id)
                 .orElseThrow(() -> {
@@ -81,15 +150,14 @@ public interface UserAccountService<
     }
 
     @Transactional
-    default void toggleActiveStatus(String authUsername, String authPassword, String username) {
+    default void toggleActiveStatus(Credentials authCredentials, String username) {
         String serviceName = getClass().getSimpleName();
         LOGGER.debug(LOG_TOGGLE_STATUS_START, serviceName, username);
 
-        getAuthService().authenticateCredentials(authUsername, authPassword);
-        T entity = findByUsername(authUsername, authPassword, username);
+        getAuthService().authenticateCredentials(authCredentials);
+        T entity = findByUsername(authCredentials, username);
 
-        User user = Optional.ofNullable(entity.getUser())
-                .orElseThrow(() -> new EntityNotFoundException(serviceName + ": User entity is null for '" + username + "'."));
+        User user = entity.getUser();
 
         user.setActive(!user.isActive());
 
@@ -106,15 +174,14 @@ public interface UserAccountService<
     }
 
     @Transactional
-    default String changePassword(String authUsername, String authPassword, String username) {
+    default String changePassword(Credentials authCredentials, String username) {
         String serviceName = getClass().getSimpleName();
-        LOGGER.debug("{}: SERVICE - Changing password for user: {}", serviceName, username);
+        LOGGER.debug(LOG_CHANGE_PASSWORD_START, serviceName, username);
 
-        getAuthService().authenticateCredentials(authUsername, authPassword);
-        T entity = findByUsername(authUsername, authPassword, username);
+        getAuthService().authenticateCredentials(authCredentials);
+        T entity = findByUsername(authCredentials, username);
 
-        User user = Optional.ofNullable(entity.getUser())
-                .orElseThrow(() -> new EntityNotFoundException(serviceName + ": User entity is null for '" + username + "'."));
+        User user = entity.getUser();
 
         String newPassword = getPasswordGenerator().generate();
         user.setPassword(newPassword);
@@ -122,13 +189,13 @@ public interface UserAccountService<
         try {
             Session session = getDao().getSessionFactory().getCurrentSession();
             session.merge(user);
-            LOGGER.debug("{}: SERVICE - Password changed for user: {}", serviceName, username);
+            LOGGER.debug(LOG_CHANGE_PASSWORD_SUCCESS, serviceName, username);
             return newPassword;
 
         } catch (Exception e) {
-            String msg = String.format("%s: Error changing password for user '%s'", serviceName, username);
-            LOGGER.error("{}: {}", msg, e.getMessage(), e);
-            throw new ServiceException(msg, e);
+            LOGGER.error(LOG_CHANGE_PASSWORD_ERROR, serviceName, username, e.getMessage(), e);
+
+            throw new ServiceException(ERR_CHANGE_PASSWORD, e);
         }
     }
 }

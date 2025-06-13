@@ -1,12 +1,13 @@
 package edu.epam.training.manager.service.impl;
 
-import edu.epam.training.manager.dao.TrainingDao;
+import edu.epam.training.manager.dao.operations.CreateDao;
 import edu.epam.training.manager.domain.Trainee;
 import edu.epam.training.manager.domain.Trainer;
 import edu.epam.training.manager.domain.Training;
 import edu.epam.training.manager.domain.TrainingType;
+import edu.epam.training.manager.dto.Credentials;
 import edu.epam.training.manager.exception.InvalidStateException;
-import edu.epam.training.manager.service.AuthService;
+import edu.epam.training.manager.service.AuthenticationService;
 import edu.epam.training.manager.service.TraineeService;
 import edu.epam.training.manager.service.TrainerService;
 import edu.epam.training.manager.service.TrainingService;
@@ -29,14 +30,14 @@ public class TrainingServiceImpl implements TrainingService {
     private static final String ERR_INVALID_SPECIALIZATION  =
             SERVICE_NAME + ": Trainer specialization '%s' does not match required '%s'";
 
-    private final TrainingDao trainingDao;
-    private final AuthService authService;
+    private final CreateDao<Training, Long> trainingDao;
+    private final AuthenticationService authenticationService;
     private final TraineeService traineeService;
     private final TrainerService trainerService;
 
-    public TrainingServiceImpl(TrainingDao trainingDao, AuthService authService, TraineeService traineeService, TrainerService trainerService) {
+    public TrainingServiceImpl(CreateDao<Training, Long> trainingDao, AuthenticationService authenticationService, TraineeService traineeService, TrainerService trainerService) {
         this.trainingDao = trainingDao;
-        this.authService = authService;
+        this.authenticationService = authenticationService;
         this.traineeService = traineeService;
         this.trainerService = trainerService;
     }
@@ -44,15 +45,15 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     @Transactional
-    public Training addTraining(String authUsername, String authPassword, Training training) {
+    public Training addTraining(Credentials authCredentials, Training training) {
         LOGGER.debug(LOG_ADD_START, training.getTrainingName());
-        authService.authenticateCredentials(authUsername, authPassword);
+        authenticationService.authenticateCredentials(authCredentials);
 
         Long traineeId = training.getTrainee().getId();
-        Trainee trainee =traineeService.findById(traineeId);
+        Trainee trainee =traineeService.findById(authCredentials, traineeId);
 
         Long trainerId = training.getTrainer().getId();
-        Trainer trainer = trainerService.findById(trainerId);
+        Trainer trainer = trainerService.findById(authCredentials, trainerId);
 
         validateTrainerSpecialization(trainer.getSpecialization(), training.getTrainingType());
 
