@@ -1,24 +1,18 @@
 package edu.epam.training.manager.service;
 
-import edu.epam.training.manager.dao.CreateReadDao;
-import edu.epam.training.manager.domain.Trainee;
-import edu.epam.training.manager.domain.Trainer;
-import edu.epam.training.manager.domain.Training;
-import edu.epam.training.manager.domain.TrainingType;
-import edu.epam.training.manager.service.impl.TraineeServiceImpl;
-import edu.epam.training.manager.service.impl.TrainerServiceImpl;
+import edu.epam.training.manager.dao.interfaces.CreateDao;
+import edu.epam.training.manager.domain.*;
+import edu.epam.training.manager.dto.Credentials;
+import edu.epam.training.manager.exception.InvalidStateException;
 import edu.epam.training.manager.service.impl.TrainingServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
-import java.util.Optional;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -27,131 +21,112 @@ import static org.mockito.Mockito.*;
 class TrainingServiceImplTest {
 
     @Mock
-    private CreateReadDao<Training, UUID> trainingDao;
-
+    private CreateDao<Training, Long> trainingDao;
     @Mock
-    private TraineeServiceImpl traineeServiceImpl;
-
+    private AuthenticationService authenticationService;
     @Mock
-    private TrainerServiceImpl trainerServiceImpl;
+    private TraineeService traineeService;
+    @Mock
+    private TrainerService trainerService;
 
     @InjectMocks
     private TrainingServiceImpl trainingService;
 
-    private Trainee sampleTrainee;
-    private Trainer sampleTrainer;
-
-    @BeforeEach
-    void setUp() {
-        sampleTrainee = Trainee.builder()
-                .id(UUID.randomUUID())
-                .firstName("Test")
-                .lastName("Trainee")
-                .dateOfBirth(null)
-                .address("Test Address")
-                .username("testtrainee")
-                .password("password")
-                .isActive(true)
-                .build();
-
-        sampleTrainer = Trainer.builder()
-                .id(UUID.randomUUID())
-                .firstName("Test")
-                .lastName("Trainer")
-                .specialization(TrainingType.YOGA)
-                .username("testtrainer")
-                .password("password")
-                .isActive(true)
-                .build();
-    }
-
     @Test
-    void testCreateTrainingSuccess() {
-        UUID traineeId = sampleTrainee.getId();
-        UUID trainerId = sampleTrainer.getId();
-        Training input = Training.builder()
+    void addTraining_success() {
+        String authUser = "admin";
+        String authPass = "adminPass";
+        Credentials credentials = new Credentials(authUser, authPass);
+
+        Long traineeId = 1L;
+        Long trainerId = 2L;
+
+        TrainingType type = new TrainingType();
+
+        Trainee trainee = Trainee.builder()
+                .user(User.builder().username("trainee1").build())
+                .build();
+
+        Trainer trainer = Trainer.builder()
+                .user(User.builder().username("trainer1").build())
+                .specialization(type)
+                .build();
+
+        Training trainingInput = Training.builder()
                 .trainingName("Morning Cardio")
-                .trainingType(TrainingType.YOGA)
-                .traineeId(traineeId)
-                .trainerId(trainerId)
-                .trainingDate(LocalDate.of(2025, 6, 10))
+                .trainee(Trainee.builder().id(traineeId).build())
+                .trainer(Trainer.builder().id(trainerId).build())
+                .trainingDuration(60)
+                .trainingDate(LocalDate.of(2025, 6, 1))
+                .trainingType(type)
                 .build();
 
-        when(trainerServiceImpl.findById(trainerId)).thenReturn(sampleTrainer);
+        Training expectedTraining = Training.builder()
+                .trainee(trainee)
+                .trainer(trainer)
+                .trainingDuration(60)
+                .trainingDate(LocalDate.of(2025, 6, 1))
+                .trainingType(type)
+                .build();
 
-        ArgumentCaptor<Training> captor = ArgumentCaptor.forClass(Training.class);
-        Training created = trainingService.create(input);
+        doNothing().when(authenticationService).authenticateCredentials(credentials);
+        when(traineeService.findById(credentials, traineeId)).thenReturn(trainee);
+        when(trainerService.findById(credentials, trainerId)).thenReturn(trainer);
+        when(trainingDao.create(any(Training.class))).thenReturn(expectedTraining);
 
-        assertNotNull(created.getId());
-        assertEquals("Morning Cardio", created.getTrainingName());
+        Training result = trainingService.addTraining(credentials, trainingInput);
 
-        assertEquals(traineeId, created.getTraineeId());
-        assertEquals(trainerId, created.getTrainerId());
+        assertEquals(expectedTraining, result);
 
-        verify(trainingDao, times(1)).create(captor.capture());
-        Training passed = captor.getValue();
-        assertEquals(created.getId(), passed.getId());
-        assertEquals("Morning Cardio", passed.getTrainingName());
-
+        verify(authenticationService).authenticateCredentials(credentials);
+        verify(traineeService).findById(credentials, traineeId);
+        verify(trainerService).findById(credentials, trainerId);
+        verify(trainingDao).create(any(Training.class));
     }
 
     @Test
-    void testCreateTrainingTraineeNotFound() {
-        UUID traineeId = UUID.randomUUID();
-        UUID trainerId = sampleTrainer.getId();
-        Training input = Training.builder()
-                .trainingName("Morning Cardio")
-                .trainingType(TrainingType.YOGA)
-                .traineeId(traineeId)
-                .trainerId(trainerId)
-                .trainingDate(LocalDate.now())
+    void addTraining_invalidTrainerSpecialization_throws() {
+        String authUser = "admin";
+        String authPass = "adminPass";
+        Credentials credentials = new Credentials(authUser, authPass);
+
+        Long traineeId = 1L;
+        Long trainerId = 2L;
+
+        TrainingType trainingType = new TrainingType();
+        ReflectionTestUtils.setField(trainingType, "trainingTypeName", "Yoga");
+        TrainingType trainerSpecialization = new TrainingType();
+        ReflectionTestUtils.setField(trainerSpecialization, "trainingTypeName", "Boxing");
+
+        Trainee trainee = Trainee.builder()
+                .user(User.builder().username("trainee1").build())
                 .build();
 
-        when(traineeServiceImpl.findById(traineeId)).thenThrow(new IllegalArgumentException("Trainee not found"));
+        Trainer trainer = Trainer.builder()
+                .user(User.builder().username("trainer1").build())
+                .specialization(trainerSpecialization)
+                .build();
 
-        assertThrows(IllegalArgumentException.class, () -> trainingService.create(input));
+        Training trainingInput = Training.builder()
+                .trainingName("Strength Session")
+                .trainee(Trainee.builder().id(traineeId).build())
+                .trainer(Trainer.builder().id(trainerId).build())
+                .trainingDuration(45)
+                .trainingDate(LocalDate.of(2025, 6, 2))
+                .trainingType(trainingType)
+                .build();
+
+        doNothing().when(authenticationService).authenticateCredentials(credentials);
+        when(traineeService.findById(credentials, traineeId)).thenReturn(trainee);
+        when(trainerService.findById(credentials, trainerId)).thenReturn(trainer);
+
+        InvalidStateException ex = assertThrows(InvalidStateException.class, () -> trainingService.addTraining(credentials, trainingInput));
+
+        assertTrue(ex.getMessage().contains("Trainer specialization"));
+
+        verify(authenticationService).authenticateCredentials(credentials);
+        verify(traineeService).findById(credentials, traineeId);
+        verify(trainerService).findById(credentials, trainerId);
         verify(trainingDao, never()).create(any());
-    }
-
-    @Test
-    void testCreateTrainingTrainerNotFound() {
-        UUID traineeId = sampleTrainee.getId();
-        UUID trainerId = UUID.randomUUID();
-        Training input = Training.builder()
-                .trainingName("Evening Strength")
-                .trainingType(TrainingType.YOGA)
-                .traineeId(traineeId)
-                .trainerId(trainerId)
-                .trainingDate(LocalDate.now())
-                .build();
-
-        when(trainerServiceImpl.findById(trainerId)).thenThrow(new IllegalArgumentException("Trainer not found"));
-
-        assertThrows(IllegalArgumentException.class, () -> trainingService.create(input));
-        verify(trainingDao, never()).create(any());
-    }
-
-    @Test
-    void testGetTrainingFound() {
-        UUID trainingId = UUID.randomUUID();
-        Training sampleTraining = Training.builder()
-                .id(trainingId)
-                .trainingName("Sample")
-                .trainingType(TrainingType.YOGA)
-                .traineeId(sampleTrainee.getId())
-                .trainerId(sampleTrainer.getId())
-                .trainingDate(LocalDate.now())
-                .build();
-
-        when(trainingDao.findById(trainingId)).thenReturn(Optional.of(sampleTraining));
-        Training result = trainingService.findById(trainingId);
-        assertEquals(sampleTraining, result);
-    }
-
-    @Test
-    void testGetTrainingNotFound() {
-        UUID trainingId = UUID.randomUUID();
-        when(trainingDao.findById(trainingId)).thenReturn(Optional.empty());
-        assertThrows(IllegalArgumentException.class, () -> trainingService.findById(trainingId));
     }
 }

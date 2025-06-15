@@ -1,88 +1,81 @@
 package edu.epam.training.manager.service.impl;
 
-import edu.epam.training.manager.dao.CreateReadDao;
+import edu.epam.training.manager.dao.interfaces.CreateDao;
 import edu.epam.training.manager.domain.Trainee;
 import edu.epam.training.manager.domain.Trainer;
 import edu.epam.training.manager.domain.Training;
 import edu.epam.training.manager.domain.TrainingType;
-import edu.epam.training.manager.service.CreateReadService;
-import edu.epam.training.manager.service.CreateReadUpdateService;
-import edu.epam.training.manager.service.CrudService;
+import edu.epam.training.manager.dto.Credentials;
+import edu.epam.training.manager.exception.InvalidStateException;
+import edu.epam.training.manager.service.AuthenticationService;
+import edu.epam.training.manager.service.TraineeService;
+import edu.epam.training.manager.service.TrainerService;
+import edu.epam.training.manager.service.TrainingService;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
-
+@Service
 @Setter
-public class TrainingServiceImpl implements CreateReadService<Training, UUID> {
+public class TrainingServiceImpl implements TrainingService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TrainingServiceImpl.class);
 
-    @Autowired
-    private CreateReadDao<Training, UUID> trainingDAO;
+    private static final String SERVICE_NAME = "TrainingServiceImpl";
 
-    private CrudService<Trainee, UUID> traineeService;
+    private static final String LOG_ADD_START    = SERVICE_NAME + " - Starting training creation: {}";
+    private static final String LOG_ADD_SUCCESS  = SERVICE_NAME + " - Created training with ID: {}";
 
-    private CreateReadUpdateService<Trainer, UUID> trainerService;
+    private static final String ERR_INVALID_SPECIALIZATION  =
+            SERVICE_NAME + ": Trainer specialization '%s' does not match required '%s'";
+
+    private final CreateDao<Training, Long> trainingDao;
+    private final AuthenticationService authenticationService;
+    private final TraineeService traineeService;
+    private final TrainerService trainerService;
+
+    public TrainingServiceImpl(CreateDao<Training, Long> trainingDao, AuthenticationService authenticationService, TraineeService traineeService, TrainerService trainerService) {
+        this.trainingDao = trainingDao;
+        this.authenticationService = authenticationService;
+        this.traineeService = traineeService;
+        this.trainerService = trainerService;
+    }
+
 
     @Override
-    public Training create(Training training) {
-        LOGGER.debug("Starting training creation process for training: {}", training.getTrainingName());
+    @Transactional
+    public Training addTraining(Credentials authCredentials, Training training) {
+        LOGGER.debug(LOG_ADD_START, training.getTrainingName());
+        authenticationService.authenticateCredentials(authCredentials);
 
-        validateTraineeExists(training.getTraineeId());
+        Long traineeId = training.getTrainee().getId();
+        Trainee trainee =traineeService.findById(authCredentials, traineeId);
 
-        Trainer trainer = trainerService.findById(training.getTrainerId());
+        Long trainerId = training.getTrainer().getId();
+        Trainer trainer = trainerService.findById(authCredentials, trainerId);
 
         validateTrainerSpecialization(trainer.getSpecialization(), training.getTrainingType());
 
-        UUID id = UUID.randomUUID();
-
         Training newTraining = Training.builder()
-                .id(id)
-                .trainingName(training.getTrainingName())
-                .trainingType(training.getTrainingType())
-                .trainerId(training.getTrainerId())
-                .traineeId(training.getTraineeId())
-                .trainingDate(training.getTrainingDate())
+                .trainee(trainee)
+                .trainer(trainer)
                 .trainingDuration(training.getTrainingDuration())
+                .trainingDate(training.getTrainingDate())
+                .trainingType(training.getTrainingType())
                 .build();
 
-        trainingDAO.create(newTraining);
+        Training created = trainingDao.create(newTraining);
 
-        LOGGER.debug("Training created successfully: {}", newTraining);
-        return newTraining;
+        LOGGER.debug(LOG_ADD_SUCCESS, created.getId());
+        return created;
     }
 
-    @Override
-    public Training findById(UUID id) {
-        LOGGER.debug("Initiating search for training with ID: {}", id);
-
-        Training training = trainingDAO.findById(id)
-                .orElseThrow(() -> {
-                    LOGGER.error("Training with ID {} not found!", id);
-                    return new IllegalArgumentException("Training with ID " + id + " not found.");
-                });
-
-        LOGGER.debug("Training found successfully: {}", training);
-        return training;
-    }
-
-    private void validateTraineeExists(UUID traineeId) {
-        LOGGER.debug("Validating existence of trainee with ID {}", traineeId);
-        traineeService.findById(traineeId);
-    }
-
-    private void validateTrainerSpecialization(TrainingType trainerSpecialization, TrainingType requiredSpecialization) {
-        if (!trainerSpecialization.equals(requiredSpecialization)) {
-            LOGGER.error(
-                    "Trainer specialization {} does not match required specialization {}.",
-                    trainerSpecialization,
-                    requiredSpecialization
-            );
-            throw new IllegalArgumentException(
-                    "Trainer specialization " + trainerSpecialization + " does not match required specialization " + requiredSpecialization
-            );
+    private void validateTrainerSpecialization(TrainingType actual, TrainingType required) {
+        if (!actual.equals(required)) {
+            String msg = String.format(ERR_INVALID_SPECIALIZATION, actual, required);
+            LOGGER.error(msg);
+            throw new InvalidStateException(msg);
         }
     }
 }

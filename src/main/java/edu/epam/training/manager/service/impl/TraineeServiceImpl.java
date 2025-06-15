@@ -1,103 +1,115 @@
 package edu.epam.training.manager.service.impl;
 
-import edu.epam.training.manager.dao.TraineeDao;
+import edu.epam.training.manager.dao.interfaces.TraineeDao;
 import edu.epam.training.manager.domain.Trainee;
-import edu.epam.training.manager.service.CrudService;
+import edu.epam.training.manager.domain.Training;
+import edu.epam.training.manager.domain.User;
+import edu.epam.training.manager.dto.Credentials;
+import edu.epam.training.manager.service.AuthenticationService;
+import edu.epam.training.manager.service.TraineeService;
 import edu.epam.training.manager.service.UserService;
 import edu.epam.training.manager.utils.generation.PasswordGenerator;
 
-import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
-@Setter
-public class TraineeServiceImpl implements CrudService<Trainee, UUID> {
+@Service
+public class TraineeServiceImpl implements TraineeService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TraineeServiceImpl.class);
 
-    @Autowired
-    private TraineeDao<Trainee, UUID> traineeDAO;
+    private static final String SERVICE_NAME = "TraineeServiceImpl";
 
-    private UserService userService;
-    private PasswordGenerator passwordGenerator;
+    private static final String LOG_DELETE_START   = SERVICE_NAME + " - Deleting trainee by username: {}";
+    private static final String LOG_DELETE_SUCCESS = SERVICE_NAME + " - Deleted trainee: {}";
+
+    private static final String LOG_QUERY_START    = SERVICE_NAME + " - Fetching trainings for trainee {} with [from={}, to={}, trainer={}, type={}]";
+    private static final String LOG_QUERY_RESULTS  = SERVICE_NAME + " - Retrieved {} trainings for trainee {}";
+
+    private final AuthenticationService authenticationService;
+    private final TraineeDao traineeDao;
+    private final UserService userService;
+    private final PasswordGenerator passwordGenerator;
+
+    public TraineeServiceImpl(AuthenticationService authenticationService,
+                              TraineeDao traineeDao,
+                              UserService userService,
+                              PasswordGenerator passwordGenerator) {
+        this.authenticationService = authenticationService;
+        this.traineeDao = traineeDao;
+        this.userService = userService;
+        this.passwordGenerator = passwordGenerator;
+    }
 
     @Override
-    public Trainee create(Trainee trainee) {
-        LOGGER.debug("Starting trainee creation process for: {} {}", trainee.getFirstName(), trainee.getLastName());
+    public TraineeDao getDao() {
+        return traineeDao;
+    }
 
-        UUID id = UUID.randomUUID();
-        String username = userService.generateUniqueUsername(trainee.getFirstName(), trainee.getLastName());
-        String password = passwordGenerator.generate();
+    @Override
+    public AuthenticationService getAuthService() {
+        return authenticationService;
+    }
 
-        Trainee newTrainee = Trainee.builder()
-                .id(id)
-                .firstName(trainee.getFirstName())
-                .lastName(trainee.getLastName())
-                .dateOfBirth(trainee.getDateOfBirth())
-                .address(trainee.getAddress())
-                .username(username)
-                .password(password)
+    @Override
+    public PasswordGenerator getPasswordGenerator() {
+        return passwordGenerator;
+    }
+
+    @Override
+    public UserService getUserService() {
+        return userService;
+    }
+
+    @Override
+    public Trainee buildProfile(User user, Trainee profile) {
+        return Trainee.builder()
+                .user(user)
+                .dateOfBirth(profile.getDateOfBirth())
+                .address(profile.getAddress())
                 .build();
-
-        traineeDAO.create(newTrainee);
-
-        LOGGER.debug("Trainee created successfully: {}", newTrainee);
-
-        return newTrainee;
     }
 
     @Override
-    public Trainee update(Trainee traineeUpdate) {
-        LOGGER.debug("Starting trainee update process for ID: {}",traineeUpdate.getId());
-
-        Trainee existing = findById(traineeUpdate.getId());
-
-        Trainee updatedTrainee = Trainee.builder()
-                .id(existing.getId())
-                .firstName(Optional.ofNullable(traineeUpdate.getFirstName()).orElse(existing.getFirstName()))
-                .lastName(Optional.ofNullable(traineeUpdate.getLastName()).orElse(existing.getLastName()))
-                .username(existing.getUsername())
-                .password(existing.getPassword())
-                .isActive(Optional.of(traineeUpdate.isActive()).orElse(existing.isActive()))
-                .dateOfBirth(Optional.ofNullable(traineeUpdate.getDateOfBirth()).orElse(existing.getDateOfBirth()))
-                .address(Optional.ofNullable(traineeUpdate.getAddress()).orElse(existing.getAddress()))
-                .build();
-
-        traineeDAO.update(updatedTrainee);
-
-        Trainee result = traineeDAO.findById(traineeUpdate.getId())
-                .orElseThrow(() -> {
-                    LOGGER.error("Trainee with ID {} not found after update.", traineeUpdate.getId());
-                    return new IllegalArgumentException("Trainee with ID " + traineeUpdate.getId() + " not found after update.");
-                });
-
-        LOGGER.debug("Trainee updated successfully with ID: {}", traineeUpdate.getId());
-        return result;
+    public void updateProfileSpecificFields(Trainee existing, Trainee item) {
+        Optional.ofNullable(item.getDateOfBirth()).ifPresent(existing::setDateOfBirth);
+        Optional.ofNullable(item.getAddress()).ifPresent(existing::setAddress);
     }
 
     @Override
-    public void delete(UUID id) {
-        LOGGER.debug("Initiating deletion process for trainee with ID: {}", id);
+    @Transactional
+    public void delete(Credentials authCredentials, String username) {
+        LOGGER.debug(LOG_DELETE_START, username);
 
-        traineeDAO.delete(id);
+        authenticationService.authenticateCredentials(authCredentials);
 
-        LOGGER.debug("Trainee with ID {} deleted successfully.", id);
+        Long id = findByUsername(authCredentials, username).getId();
+
+        traineeDao.delete(id);
+        LOGGER.debug(LOG_DELETE_SUCCESS, username);
     }
 
     @Override
-    public Trainee findById(UUID id) {
-        LOGGER.debug("Initiating search for trainee with ID: {}", id);
+    @Transactional(readOnly = true)
+    public List<Training> getTraineeTrainings(Credentials authCredentials,
+                                              String username,
+                                              LocalDate fromDate,
+                                              LocalDate toDate,
+                                              String trainerUsername,
+                                              String trainingType) {
 
-        Trainee trainee = traineeDAO.findById(id)
-                .orElseThrow(() -> {
-                    LOGGER.error("Trainee with ID {} not found!", id);
-                    return new IllegalArgumentException("Trainee with ID " + id + " not found.");
-                });
+        LOGGER.debug(LOG_QUERY_START, username, fromDate, toDate, trainerUsername, trainingType);
 
-        LOGGER.debug("Trainee found successfully: {}", trainee);
-        return trainee;
+        authenticationService.authenticateCredentials(authCredentials);
+
+        List<Training> trainings = traineeDao.getTraineeTrainings(username, fromDate, toDate, trainerUsername, trainingType);
+
+        LOGGER.debug(LOG_QUERY_RESULTS, trainings.size(), username);
+        return trainings;
     }
 }
