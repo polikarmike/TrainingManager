@@ -95,6 +95,10 @@ public class GymFacade {
         return trainerService.changePassword(authCredentials, username);
     }
 
+    public List<Trainer> findUnassignedTrainers(Credentials authCredentials, String traineeUsername) {
+        return trainerService.findUnassignedTrainers(authCredentials, traineeUsername);
+    }
+
     public Training addTraining(Credentials authCredentials, Training training) {
         return trainingService.addTraining(authCredentials, training);
     }

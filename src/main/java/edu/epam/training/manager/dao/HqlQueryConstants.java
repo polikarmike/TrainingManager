@@ -4,8 +4,14 @@ public class HqlQueryConstants {
     public static final String HQL_USER_FIND_BY_USERNAME =
             "FROM %s e WHERE e.user.username = :username";
 
-    public static final String HQL_TRAINER_FIND_UNASSIGNED =
-            "SELECT t FROM Trainer t WHERE t.trainees IS EMPTY";
+    public static final String HQL_TRAINER_FIND_UNASSIGNED_BY_TRAINEE =
+            "select t " +
+                    "from Trainer t " +
+                    "where not exists (" +
+                    "  select 1 " +
+                    "  from t.trainees tr " +
+                    "  where tr.user.username = :username" +
+                    ")";
 
     public static final String HQL_USER_VALIDATE =
             "FROM User u WHERE u.username = :username AND u.password = :password";

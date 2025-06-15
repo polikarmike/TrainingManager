@@ -156,25 +156,27 @@ class TrainerDaoImplTest {
     @Test
     @SuppressWarnings("unchecked")
     void testFindUnassignedTrainers_success() {
+        String traineeUsername = "testUser";
         Trainer trainer1 = new Trainer();
         trainer1.setId(1L);
-
         Trainer trainer2 = new Trainer();
         trainer2.setId(2L);
-
         List<Trainer> mockResult = List.of(trainer1, trainer2);
 
         Query<Trainer> query = mock(Query.class);
-        when(session.createQuery(anyString(), eq(Trainer.class))).thenReturn(query);
+        when(session.createQuery(HqlQueryConstants.HQL_TRAINER_FIND_UNASSIGNED_BY_TRAINEE, Trainer.class))
+                .thenReturn(query);
+        when(query.setParameter("username", traineeUsername)).thenReturn(query);
         when(query.getResultList()).thenReturn(mockResult);
 
-        List<Trainer> result = trainerDao.findUnassignedTrainers();
+        List<Trainer> result = trainerDao.findUnassignedTrainers(traineeUsername);
 
         assertEquals(2, result.size());
         assertTrue(result.contains(trainer1));
         assertTrue(result.contains(trainer2));
 
-        verify(session).createQuery("SELECT t FROM Trainer t WHERE t.trainees IS EMPTY", Trainer.class);
+        verify(session).createQuery(HqlQueryConstants.HQL_TRAINER_FIND_UNASSIGNED_BY_TRAINEE, Trainer.class);
+        verify(query).setParameter("username", traineeUsername);
         verify(query).getResultList();
     }
 
@@ -183,7 +185,7 @@ class TrainerDaoImplTest {
         when(session.createQuery(anyString(), eq(Trainer.class)))
                 .thenThrow(new RuntimeException("DB error"));
 
-        DaoException ex = assertThrows(DaoException.class, () -> trainerDao.findUnassignedTrainers());
+        DaoException ex = assertThrows(DaoException.class, () -> trainerDao.findUnassignedTrainers("any.user"));
         assertTrue(ex.getMessage().contains("Error fetching unassigned trainers"));
     }
 }

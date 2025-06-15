@@ -32,9 +32,9 @@ public class TrainerServiceImpl implements TrainerService {
             SERVICE_NAME + " - Retrieved {} trainings for trainer {}";
 
     private static final String LOG_UNASSIGNED_SEARCH_START   =
-            SERVICE_NAME + " - Initiating search for unassigned trainers (without trainees).";
+            SERVICE_NAME + " - Initiating search for unassigned trainers for trainee: {}.";
     private static final String LOG_UNASSIGNED_SEARCH_SUCCESS =
-            SERVICE_NAME + " - Search completed. Found {} unassigned trainers.";
+            SERVICE_NAME + " - Search completed. Found {} unassigned trainers for trainee: {}.";
 
     private final AuthenticationService authenticationService;
     private final TrainerDao trainerDao;
@@ -87,14 +87,14 @@ public class TrainerServiceImpl implements TrainerService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Trainer> findUnassignedTrainers(Credentials authCredentials) {
-        LOGGER.debug(LOG_UNASSIGNED_SEARCH_START);
+    public List<Trainer> findUnassignedTrainers(Credentials authCredentials, String traineeUsername) {
+        LOGGER.debug(LOG_UNASSIGNED_SEARCH_START, traineeUsername);
 
         authenticationService.authenticateCredentials(authCredentials);
 
-        List<Trainer> trainers = trainerDao.findUnassignedTrainers();
+        List<Trainer> trainers = trainerDao.findUnassignedTrainers(traineeUsername);
 
-        LOGGER.debug(LOG_UNASSIGNED_SEARCH_SUCCESS, trainers.size());
+        LOGGER.debug(LOG_UNASSIGNED_SEARCH_SUCCESS, trainers.size(), traineeUsername);
         return trainers;
     }
 

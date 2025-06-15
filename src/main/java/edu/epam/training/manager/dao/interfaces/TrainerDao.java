@@ -17,5 +17,5 @@ public interface TrainerDao
                                                LocalDate toDate,
                                                String traineeUsername);
 
-    List<Trainer> findUnassignedTrainers();
+    List<Trainer> findUnassignedTrainers(String traineeUsername);
 }

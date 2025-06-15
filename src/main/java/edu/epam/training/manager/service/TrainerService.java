@@ -9,7 +9,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface TrainerService extends UserAccountService<Trainer, Long, TrainerDao>{
-    List<Trainer> findUnassignedTrainers(Credentials authCredentials);
+    List<Trainer> findUnassignedTrainers(Credentials authCredentials, String traineeUsername);
+
     List<Training> getTrainerTrainings(Credentials authCredentials,
                                        String username,
                                        LocalDate fromDate,

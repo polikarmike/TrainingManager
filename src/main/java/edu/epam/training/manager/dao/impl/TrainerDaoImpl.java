@@ -22,11 +22,11 @@ public class TrainerDaoImpl extends BaseDao<Trainer, Long> implements TrainerDao
     private static final Logger LOGGER = LoggerFactory.getLogger(TrainerDaoImpl.class);
 
     private static final String LOG_FIND_UNASSIGNED_START =
-            "{}: DAO FETCH - Searching unassigned trainers";
+            "{}: DAO FETCH - Searching unassigned trainers for trainee: {}";
     private static final String LOG_FIND_UNASSIGNED_SUCCESS =
-            "{}: DAO FETCH - Found {} unassigned trainers";
+            "{}: DAO FETCH - Found {} unassigned trainers for trainee: {}";
     private static final String LOG_FIND_UNASSIGNED_ERROR =
-            "{}: DAO ERROR - Error fetching unassigned trainers: {}";
+            "{}: DAO ERROR - Error fetching unassigned trainers for trainee {}: {}";
     private static final String ERROR_FIND_UNASSIGNED_ERROR =
             "DAO: Error fetching unassigned trainers";
 
@@ -49,20 +49,28 @@ public class TrainerDaoImpl extends BaseDao<Trainer, Long> implements TrainerDao
     }
 
     @Override
-    public List<Trainer> findUnassignedTrainers() {
+    public List<Trainer> findUnassignedTrainers(String traineeUsername) {
         String entityName = getEntityClass().getSimpleName();
-        LOGGER.debug(LOG_FIND_UNASSIGNED_START, entityName);
+        LOGGER.debug(LOG_FIND_UNASSIGNED_START, entityName, traineeUsername);
 
         try {
             Session session = getSessionFactory().getCurrentSession();
-            List<Trainer> result = session.createQuery(HqlQueryConstants.HQL_TRAINER_FIND_UNASSIGNED, Trainer.class)
+            List<Trainer> result = session.createQuery(
+                            HqlQueryConstants.HQL_TRAINER_FIND_UNASSIGNED_BY_TRAINEE,
+                            Trainer.class)
+                    .setParameter("username", traineeUsername)
                     .getResultList();
 
-            LOGGER.debug(LOG_FIND_UNASSIGNED_SUCCESS, entityName, result.size());
+            LOGGER.debug(LOG_FIND_UNASSIGNED_SUCCESS, entityName, result.size(), traineeUsername);
             return result;
 
         } catch (Exception e) {
-            LOGGER.error(LOG_FIND_UNASSIGNED_ERROR, getEntityClass().getSimpleName(), e.getMessage(), e);
+            LOGGER.error(LOG_FIND_UNASSIGNED_ERROR,
+                    getEntityClass().getSimpleName(),
+                    traineeUsername,
+                    e.getMessage(),
+                    e);
+
             throw new DaoException(ERROR_FIND_UNASSIGNED_ERROR, e);
         }
     }

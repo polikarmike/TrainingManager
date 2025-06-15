@@ -151,6 +151,7 @@ class TrainerServiceImplTest {
 
     @Test
     void findUnassignedTrainers_success() {
+        String traineeUsername = "testUser";
         String authUser = "admin";
         String authPass = "pass";
 
@@ -161,12 +162,12 @@ class TrainerServiceImplTest {
                 Trainer.builder().id(2L).build()
         );
 
-        when(trainerDao.findUnassignedTrainers()).thenReturn(trainers);
+        when(trainerDao.findUnassignedTrainers("testUser")).thenReturn(trainers);
 
-        List<Trainer> result = trainerService.findUnassignedTrainers(credentials);
+        List<Trainer> result = trainerService.findUnassignedTrainers(credentials, "testUser");
 
         verify(authenticationService).authenticateCredentials(credentials);
-        verify(trainerDao).findUnassignedTrainers();
+        verify(trainerDao).findUnassignedTrainers("testUser");
         assertEquals(2, result.size());
     }
 
