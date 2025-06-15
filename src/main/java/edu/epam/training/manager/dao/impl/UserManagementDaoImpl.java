@@ -1,7 +1,7 @@
 package edu.epam.training.manager.dao.impl;
 
 import edu.epam.training.manager.constants.ParameterConstants;
-import edu.epam.training.manager.dao.UserManagementDao;
+import edu.epam.training.manager.dao.interfaces.UserManagementDao;
 import edu.epam.training.manager.dao.HqlQueryConstants;
 import edu.epam.training.manager.domain.User;
 import edu.epam.training.manager.exception.base.DaoException;
@@ -17,15 +17,15 @@ import java.util.List;
 @Repository
 @Getter
 public class UserManagementDaoImpl implements UserManagementDao {
-    Logger LOGGER = LoggerFactory.getLogger(UserManagementDaoImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserManagementDaoImpl.class);
 
-    String LOG_VALIDATE_TEMPLATE   = "Validating credentials for username: {}";
-    String LOG_ERROR_TEMPLATE      = "Error validating credentials for {} – {}";
-    String ERROR_MSG_TEMPLATE      = "Error validating credentials for %s";
+    private static final String LOG_VALIDATE_TEMPLATE   = "Validating credentials for username: {}";
+    private static final String LOG_ERROR_TEMPLATE      = "Error validating credentials for {} – {}";
+    private static final String ERROR_MSG_TEMPLATE      = "Error validating credentials for %s";
 
-    String LOG_SEARCH_PREFIX       = "DAO: Searching usernames with prefix - {}";
-    String LOG_SEARCH_PREFIX_ERROR = "DAO: Error fetching usernames by prefix {}: {}";
-    String ERROR_SEARCH_PREFIX_TPL = "DAO: Error fetching usernames by prefix %s";
+    private static final String LOG_SEARCH_PREFIX       = "DAO: Searching usernames with prefix - {}";
+    private static final String LOG_SEARCH_PREFIX_ERROR = "DAO: Error fetching usernames by prefix {}: {}";
+    private static final String ERROR_SEARCH_PREFIX_TPL = "DAO: Error fetching usernames by prefix %s";
 
     private final SessionFactory sessionFactory;
 

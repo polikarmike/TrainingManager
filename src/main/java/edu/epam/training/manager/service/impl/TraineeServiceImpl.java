@@ -1,6 +1,6 @@
 package edu.epam.training.manager.service.impl;
 
-import edu.epam.training.manager.dao.TraineeDao;
+import edu.epam.training.manager.dao.interfaces.TraineeDao;
 import edu.epam.training.manager.domain.Trainee;
 import edu.epam.training.manager.domain.Training;
 import edu.epam.training.manager.domain.User;
@@ -23,11 +23,6 @@ import java.util.Optional;
 public class TraineeServiceImpl implements TraineeService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TraineeServiceImpl.class);
 
-    private final AuthenticationService authenticationService;
-    private final TraineeDao traineeDao;
-    private final UserService userService;
-    private final PasswordGenerator passwordGenerator;
-
     private static final String SERVICE_NAME = "TraineeServiceImpl";
 
     private static final String LOG_DELETE_START   = SERVICE_NAME + " - Deleting trainee by username: {}";
@@ -35,6 +30,11 @@ public class TraineeServiceImpl implements TraineeService {
 
     private static final String LOG_QUERY_START    = SERVICE_NAME + " - Fetching trainings for trainee {} with [from={}, to={}, trainer={}, type={}]";
     private static final String LOG_QUERY_RESULTS  = SERVICE_NAME + " - Retrieved {} trainings for trainee {}";
+
+    private final AuthenticationService authenticationService;
+    private final TraineeDao traineeDao;
+    private final UserService userService;
+    private final PasswordGenerator passwordGenerator;
 
     public TraineeServiceImpl(AuthenticationService authenticationService,
                               TraineeDao traineeDao,

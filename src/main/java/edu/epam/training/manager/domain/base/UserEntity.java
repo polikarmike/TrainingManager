@@ -1,6 +1,6 @@
 package edu.epam.training.manager.domain.base;
 
-import edu.epam.training.manager.constants.EntityConstants;
+import edu.epam.training.manager.constants.DatabaseConstants;
 import edu.epam.training.manager.domain.User;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.*;
@@ -18,6 +18,6 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 public abstract class UserEntity<ID> extends BaseEntity<ID> {
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = EntityConstants.COL_USER_ID, unique = true)
+    @JoinColumn(name = DatabaseConstants.COL_USER_ID, unique = true)
     protected User user;
 }

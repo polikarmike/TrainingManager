@@ -1,4 +1,4 @@
-package edu.epam.training.manager.dao.operations;
+package edu.epam.training.manager.dao.interfaces;
 
 import edu.epam.training.manager.domain.base.BaseEntity;
 import edu.epam.training.manager.exception.base.DaoException;
@@ -10,9 +10,9 @@ import org.slf4j.LoggerFactory;
 public interface UpdateDao<T extends BaseEntity<ID>, ID> {
     Logger LOGGER = LoggerFactory.getLogger(UpdateDao.class);
 
-    String LOG_UPDATE_START      = "{}: DAO UPDATE - Starting update for entity {}";
+    String LOG_UPDATE_START      = "{}: DAO UPDATE - Starting update for entity with ID {}";
     String LOG_UPDATE_SUCCESS    = "{}: DAO UPDATE - Successfully updated entity with ID {}";
-    String LOG_UPDATE_ERROR      = "{}: DAO UPDATE - Error updating entity {}: {}";
+    String LOG_UPDATE_ERROR      = "{}: DAO UPDATE - Error updating entity with ID {}: {}";
     String ERROR_UPDATE_TEMPLATE = "%s: DAO UPDATE - Error updating entity %s";
 
     SessionFactory getSessionFactory();
@@ -20,7 +20,7 @@ public interface UpdateDao<T extends BaseEntity<ID>, ID> {
 
     default T update(T item) {
         String entityName = getEntityClass().getSimpleName();
-        LOGGER.debug(LOG_UPDATE_START, entityName, item);
+        LOGGER.debug(LOG_UPDATE_START, entityName, item.getId());
 
         try {
             Session session = getSessionFactory().getCurrentSession();
@@ -33,7 +33,7 @@ public interface UpdateDao<T extends BaseEntity<ID>, ID> {
 
         } catch (Exception e) {
             LOGGER.error(LOG_UPDATE_ERROR, entityName, item, e.getMessage(), e);
-            String errorMsg = String.format(ERROR_UPDATE_TEMPLATE, entityName, item);
+            String errorMsg = String.format(ERROR_UPDATE_TEMPLATE, entityName, item.getId());
             throw new DaoException(errorMsg, e);
         }
     }

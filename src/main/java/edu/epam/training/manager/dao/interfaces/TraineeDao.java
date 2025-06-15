@@ -1,6 +1,5 @@
-package edu.epam.training.manager.dao;
+package edu.epam.training.manager.dao.interfaces;
 
-import edu.epam.training.manager.dao.operations.*;
 import edu.epam.training.manager.domain.Trainee;
 import edu.epam.training.manager.domain.Training;
 
@@ -11,8 +10,9 @@ public interface TraineeDao
         extends CreateDao<Trainee, Long>,
                 ReadDao<Trainee, Long>,
                 UpdateDao<Trainee, Long>,
-                DeleteDao<Trainee, Long>,
                 UserAccountOperations<Trainee, Long>{
+
+    void delete(Long id);
 
     List<Training> getTraineeTrainings(String username,
                                                LocalDate fromDate,

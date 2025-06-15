@@ -1,6 +1,6 @@
 package edu.epam.training.manager.service.impl;
 
-import edu.epam.training.manager.dao.UserManagementDao;
+import edu.epam.training.manager.dao.interfaces.UserManagementDao;
 import edu.epam.training.manager.exception.InvalidStateException;
 import edu.epam.training.manager.service.UserService;
 import edu.epam.training.manager.utils.generation.UsernameGenerator;
@@ -19,6 +19,8 @@ public class UserServiceImpl implements UserService {
 
     private static final String SERVICE_NAME = "UserServiceImpl";
 
+    private static final int MAX_ATTEMPTS = 250;
+
     private static final String LOG_GENERATE_START     =
             SERVICE_NAME + " - Generating unique username for: firstName={}, lastName={}";
     private static final String LOG_TRY_CANDIDATE      =
@@ -30,7 +32,6 @@ public class UserServiceImpl implements UserService {
 
     private final UserManagementDao userManagementDao;
     private final UsernameGenerator usernameGenerator;
-    private static final int MAX_ATTEMPTS = 250;
 
     public UserServiceImpl(UserManagementDao userManagementDao, UsernameGenerator usernameGenerator) {
         this.userManagementDao = userManagementDao;

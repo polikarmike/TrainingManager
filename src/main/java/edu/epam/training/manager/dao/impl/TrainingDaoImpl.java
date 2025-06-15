@@ -1,7 +1,7 @@
 package edu.epam.training.manager.dao.impl;
 
 import edu.epam.training.manager.dao.base.BaseDao;
-import edu.epam.training.manager.dao.operations.CreateDao;
+import edu.epam.training.manager.dao.interfaces.CreateDao;
 import edu.epam.training.manager.domain.Training;
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;

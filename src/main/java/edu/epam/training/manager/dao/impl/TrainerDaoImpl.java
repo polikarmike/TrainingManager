@@ -1,10 +1,10 @@
 package edu.epam.training.manager.dao.impl;
 
 import edu.epam.training.manager.constants.ParameterConstants;
-import edu.epam.training.manager.dao.TrainerDao;
+import edu.epam.training.manager.dao.interfaces.TrainerDao;
 import edu.epam.training.manager.dao.base.BaseDao;
 import edu.epam.training.manager.dao.HqlQueryConstants;
-import edu.epam.training.manager.dao.operations.helpers.TrainingQueryHelper;
+import edu.epam.training.manager.dao.interfaces.helpers.TrainingQueryHelper;
 import edu.epam.training.manager.domain.Trainer;
 import edu.epam.training.manager.domain.Training;
 import edu.epam.training.manager.exception.base.DaoException;
@@ -19,21 +19,20 @@ import java.util.List;
 
 @Repository
 public class TrainerDaoImpl extends BaseDao<Trainer, Long> implements TrainerDao {
-    Logger LOGGER = LoggerFactory.getLogger(TrainerDaoImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TrainerDaoImpl.class);
 
-    String LOG_FIND_UNASSIGNED_START =
+    private static final String LOG_FIND_UNASSIGNED_START =
             "{}: DAO FETCH - Searching unassigned trainers";
-    String LOG_FIND_UNASSIGNED_SUCCESS =
+    private static final String LOG_FIND_UNASSIGNED_SUCCESS =
             "{}: DAO FETCH - Found {} unassigned trainers";
-    String LOG_FIND_UNASSIGNED_ERROR =
+    private static final String LOG_FIND_UNASSIGNED_ERROR =
             "{}: DAO ERROR - Error fetching unassigned trainers: {}";
-    String ERROR_FIND_UNASSIGNED_ERROR =
+    private static final String ERROR_FIND_UNASSIGNED_ERROR =
             "DAO: Error fetching unassigned trainers";
 
     public TrainerDaoImpl(SessionFactory sessionFactory) {
         super(Trainer.class, sessionFactory);
     }
-
 
     @Override
     public List<Training> getTrainerTrainings(String username,

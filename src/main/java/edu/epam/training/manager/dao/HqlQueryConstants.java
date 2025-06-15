@@ -1,8 +1,6 @@
 package edu.epam.training.manager.dao;
 
 public class HqlQueryConstants {
-    private HqlQueryConstants() { }
-
     public static final String HQL_USER_FIND_BY_USERNAME =
             "FROM %s e WHERE e.user.username = :username";
 

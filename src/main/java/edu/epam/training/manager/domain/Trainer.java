@@ -1,6 +1,6 @@
 package edu.epam.training.manager.domain;
 
-import edu.epam.training.manager.constants.EntityConstants;
+import edu.epam.training.manager.constants.DatabaseConstants;
 import edu.epam.training.manager.domain.base.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,17 +18,17 @@ import java.util.Set;
 public class Trainer extends UserEntity<Long> {
 
     @OneToOne
-    @JoinColumn(name = EntityConstants.COL_SPECIALIZATION, unique = true)
+    @JoinColumn(name = DatabaseConstants.COL_SPECIALIZATION, unique = true)
     private TrainingType specialization;
 
-    @OneToMany(mappedBy = EntityConstants.TABLE_TRAINER)
+    @OneToMany(mappedBy = DatabaseConstants.TABLE_TRAINER)
     private final Set<Training> trainings = new HashSet<>();
 
     @ManyToMany
     @JoinTable(
-            name = EntityConstants.TABLE_TRAINER_TRAINEE,
-            joinColumns = @JoinColumn(name = EntityConstants.COL_TRAINER_ID),
-            inverseJoinColumns = @JoinColumn(name = EntityConstants.COL_TRAINEE_ID)
+            name = DatabaseConstants.TABLE_TRAINER_TRAINEE,
+            joinColumns = @JoinColumn(name = DatabaseConstants.COL_TRAINER_ID),
+            inverseJoinColumns = @JoinColumn(name = DatabaseConstants.COL_TRAINEE_ID)
     )
     private final Set<Trainee> trainees = new HashSet<>();
 

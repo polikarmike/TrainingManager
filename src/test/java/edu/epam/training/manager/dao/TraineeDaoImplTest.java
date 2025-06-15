@@ -2,7 +2,7 @@ package edu.epam.training.manager.dao;
 
 import edu.epam.training.manager.constants.ParameterConstants;
 import edu.epam.training.manager.dao.impl.TraineeDaoImpl;
-import edu.epam.training.manager.dao.operations.helpers.TrainingQueryHelper;
+import edu.epam.training.manager.dao.interfaces.helpers.TrainingQueryHelper;
 import edu.epam.training.manager.domain.Trainee;
 import edu.epam.training.manager.domain.Training;
 import edu.epam.training.manager.domain.User;

@@ -1,4 +1,4 @@
-package edu.epam.training.manager.dao.operations;
+package edu.epam.training.manager.dao.interfaces;
 
 import edu.epam.training.manager.domain.base.BaseEntity;
 import edu.epam.training.manager.exception.base.DaoException;

@@ -1,4 +1,4 @@
-package edu.epam.training.manager.dao.operations.helpers;
+package edu.epam.training.manager.dao.interfaces.helpers;
 
 import edu.epam.training.manager.constants.ParameterConstants;
 import edu.epam.training.manager.domain.Training;
@@ -33,7 +33,10 @@ public class TrainingQueryHelper {
             String trainingType,
             LocalDate fromDate, LocalDate toDate
     ) {
-        logQueryParameters(mainRole, mainUsername, secondaryRole, secondaryUsername, trainingType, fromDate, toDate);
+        LOGGER.debug(LOG_QUERY_PARAMS,
+                mainRole, mainUsername,
+                secondaryRole, secondaryUsername,
+                trainingType, fromDate, toDate);
 
         try {
             Session session = sessionFactory.getCurrentSession();
@@ -61,17 +64,6 @@ public class TrainingQueryHelper {
                     e
             );
         }
-    }
-
-    private static void logQueryParameters(
-            String mainRole, String mainUsername,
-            String secondaryRole, String secondaryUsername,
-            String trainingType, LocalDate fromDate, LocalDate toDate
-    ) {
-        LOGGER.debug(LOG_QUERY_PARAMS,
-                mainRole, mainUsername,
-                secondaryRole, secondaryUsername,
-                trainingType, fromDate, toDate);
     }
 
     private static List<Predicate> buildPredicates(

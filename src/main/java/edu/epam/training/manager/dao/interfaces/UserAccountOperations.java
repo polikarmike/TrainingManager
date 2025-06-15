@@ -1,4 +1,4 @@
-package edu.epam.training.manager.dao.operations;
+package edu.epam.training.manager.dao.interfaces;
 
 import edu.epam.training.manager.constants.ParameterConstants;
 import edu.epam.training.manager.dao.HqlQueryConstants;

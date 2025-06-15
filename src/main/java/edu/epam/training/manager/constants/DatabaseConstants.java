@@ -1,8 +1,6 @@
 package edu.epam.training.manager.constants;
 
-public class EntityConstants {
-    private EntityConstants() { }
-
+public class DatabaseConstants {
     public static final String TABLE_TRAINEE = "trainee";
     public static final String TABLE_TRAINER = "trainer";
     public static final String TABLE_TRAINING_TYPE = "training_type";

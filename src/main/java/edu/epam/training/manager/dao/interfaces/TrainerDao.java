@@ -1,6 +1,5 @@
-package edu.epam.training.manager.dao;
+package edu.epam.training.manager.dao.interfaces;
 
-import edu.epam.training.manager.dao.operations.*;
 import edu.epam.training.manager.domain.Trainer;
 import edu.epam.training.manager.domain.Training;
 

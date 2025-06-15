@@ -1,4 +1,4 @@
-package edu.epam.training.manager.dao;
+package edu.epam.training.manager.dao.interfaces;
 
 import java.util.List;
 

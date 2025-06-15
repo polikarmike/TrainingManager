@@ -1,6 +1,6 @@
 package edu.epam.training.manager.service.impl;
 
-import edu.epam.training.manager.dao.operations.CreateDao;
+import edu.epam.training.manager.dao.interfaces.CreateDao;
 import edu.epam.training.manager.domain.Trainee;
 import edu.epam.training.manager.domain.Trainer;
 import edu.epam.training.manager.domain.Training;
@@ -25,7 +25,7 @@ public class TrainingServiceImpl implements TrainingService {
     private static final String SERVICE_NAME = "TrainingServiceImpl";
 
     private static final String LOG_ADD_START    = SERVICE_NAME + " - Starting training creation: {}";
-    private static final String LOG_ADD_SUCCESS  = SERVICE_NAME + " - Created training: {}";
+    private static final String LOG_ADD_SUCCESS  = SERVICE_NAME + " - Created training with ID: {}";
 
     private static final String ERR_INVALID_SPECIALIZATION  =
             SERVICE_NAME + ": Trainer specialization '%s' does not match required '%s'";
@@ -67,7 +67,7 @@ public class TrainingServiceImpl implements TrainingService {
 
         Training created = trainingDao.create(newTraining);
 
-        LOGGER.debug(LOG_ADD_SUCCESS, created);
+        LOGGER.debug(LOG_ADD_SUCCESS, created.getId());
         return created;
     }
 

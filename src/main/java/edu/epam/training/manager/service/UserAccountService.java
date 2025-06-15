@@ -1,10 +1,10 @@
 package edu.epam.training.manager.service;
 
-import edu.epam.training.manager.dao.operations.CreateDao;
-import edu.epam.training.manager.dao.operations.UpdateDao;
+import edu.epam.training.manager.dao.interfaces.CreateDao;
+import edu.epam.training.manager.dao.interfaces.UpdateDao;
 import edu.epam.training.manager.domain.base.UserEntity;
-import edu.epam.training.manager.dao.operations.ReadDao;
-import edu.epam.training.manager.dao.operations.UserAccountOperations;
+import edu.epam.training.manager.dao.interfaces.ReadDao;
+import edu.epam.training.manager.dao.interfaces.UserAccountOperations;
 import edu.epam.training.manager.domain.User;
 import edu.epam.training.manager.dto.Credentials;
 import edu.epam.training.manager.exception.EntityNotFoundException;
@@ -26,7 +26,7 @@ public interface UserAccountService<
     Logger LOGGER = LoggerFactory.getLogger(UserAccountService.class);
 
     String LOG_CREATE_START = "{}: SERVICE - Creating entity: {} {}";
-    String LOG_CREATE_SUCCESS = "{}: SERVICE - Created entity: {}";
+    String LOG_CREATE_SUCCESS = "{}: SERVICE - Created entity with ID: {}";
 
     String LOG_UPDATE_START = "{}: SERVICE - Updating entity ID: {}";
     String LOG_UPDATE_SUCCESS = "{}: SERVICE - Updated entity ID: {}";
@@ -86,7 +86,7 @@ public interface UserAccountService<
         T newEntity = buildProfile(newUser, item);
         T created = getDao().create(newEntity);
 
-        LOGGER.debug(LOG_CREATE_SUCCESS, serviceName, created);
+        LOGGER.debug(LOG_CREATE_SUCCESS, serviceName, created.getId());
         return created;
     }
 

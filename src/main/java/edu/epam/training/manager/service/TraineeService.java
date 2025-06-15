@@ -1,6 +1,6 @@
 package edu.epam.training.manager.service;
 
-import edu.epam.training.manager.dao.TraineeDao;
+import edu.epam.training.manager.dao.interfaces.TraineeDao;
 import edu.epam.training.manager.domain.Trainee;
 import edu.epam.training.manager.domain.Training;
 import edu.epam.training.manager.dto.Credentials;
