@@ -1,96 +1,118 @@
 package edu.epam.training.manager.service.impl;
 
-import edu.epam.training.manager.dao.TrainerDao;
+import edu.epam.training.manager.dao.interfaces.TrainerDao;
 import edu.epam.training.manager.domain.Trainer;
 
-import edu.epam.training.manager.service.CreateReadUpdateService;
+import edu.epam.training.manager.domain.Training;
+import edu.epam.training.manager.domain.User;
+import edu.epam.training.manager.dto.Credentials;
+import edu.epam.training.manager.service.AuthenticationService;
+import edu.epam.training.manager.service.TrainerService;
 import edu.epam.training.manager.service.UserService;
 import edu.epam.training.manager.utils.generation.PasswordGenerator;
 
-import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
-@Setter
-public class TrainerServiceImpl implements CreateReadUpdateService<Trainer, UUID> {
+@Service
+public class TrainerServiceImpl implements TrainerService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TrainerServiceImpl.class);
 
-    @Autowired
-    private TrainerDao<Trainer, UUID> trainerDAO;
+    private static final String SERVICE_NAME = "TrainerServiceImpl";
 
-    private UserService userService;
-    private PasswordGenerator passwordGenerator;
+    private static final String LOG_QUERY_START    =
+            SERVICE_NAME + " - Fetching trainings for trainer {} with [from={}, to={}, trainee={}]";
+    private static final String LOG_QUERY_RESULTS  =
+            SERVICE_NAME + " - Retrieved {} trainings for trainer {}";
 
-    @Override
-    public Trainer create(Trainer trainer) {
-        LOGGER.debug("Starting trainer creation process for: {} {}",
-                trainer.getFirstName(), trainer.getLastName());
+    private static final String LOG_UNASSIGNED_SEARCH_START   =
+            SERVICE_NAME + " - Initiating search for unassigned trainers for trainee: {}.";
+    private static final String LOG_UNASSIGNED_SEARCH_SUCCESS =
+            SERVICE_NAME + " - Search completed. Found {} unassigned trainers for trainee: {}.";
 
-        UUID id = UUID.randomUUID();
-        String username = userService.generateUniqueUsername(trainer.getFirstName(), trainer.getLastName());
-        String password = passwordGenerator.generate();
+    private final AuthenticationService authenticationService;
+    private final TrainerDao trainerDao;
+    private final  UserService userService;
+    private final PasswordGenerator passwordGenerator;
 
-        Trainer newTrainer = Trainer.builder()
-                .id(id)
-                .firstName(trainer.getFirstName())
-                .lastName(trainer.getLastName())
-                .specialization(trainer.getSpecialization())
-                .username(username)
-                .password(password)
-                .build();
+    public TrainerServiceImpl(AuthenticationService authenticationService,
+                              TrainerDao trainerDao,
+                              UserService userService,
+                              PasswordGenerator passwordGenerator) {
 
-        trainerDAO.create(newTrainer);
-
-        LOGGER.debug("Trainer created successfully: {}", newTrainer);
-
-        return newTrainer;
+        this.authenticationService = authenticationService;
+        this.trainerDao = trainerDao;
+        this.userService = userService;
+        this.passwordGenerator = passwordGenerator;
     }
 
     @Override
-    public Trainer update(Trainer trainer) {
-        LOGGER.debug("Starting trainer update process for ID: {}", trainer.getId());
-
-        Trainer existing = findById(trainer.getId());
-
-        Trainer updatedTrainer = Trainer.builder()
-                .id(existing.getId())
-                .firstName(Optional.ofNullable(trainer.getFirstName()).orElse(existing.getFirstName()))
-                .lastName(Optional.ofNullable(trainer.getLastName()).orElse(existing.getLastName()))
-                .username(existing.getUsername())
-                .password(existing.getPassword())
-                .isActive(Optional.of(trainer.isActive()).orElse(existing.isActive()))
-                .specialization(Optional.ofNullable(trainer.getSpecialization()).orElse(existing.getSpecialization()))
-                .build();
-
-        trainerDAO.update(updatedTrainer);
-
-        Trainer result = trainerDAO.findById(trainer.getId())
-                .orElseThrow(() -> {
-                    LOGGER.error("Trainer with ID {} not found after update.", trainer.getId());
-                    return new IllegalArgumentException("Trainer with ID " + trainer.getId() + " not found after update.");
-                });
-
-        LOGGER.debug("Trainer updated successfully with ID: {}", trainer.getId());
-
-        return result;
+    public TrainerDao getDao() {
+        return trainerDao;
     }
 
     @Override
-    public Trainer findById(UUID id) {
-        LOGGER.debug("Initiating search for trainer with ID: {}", id);
+    public AuthenticationService getAuthService() {
+        return authenticationService;
+    }
 
-        Trainer trainer = trainerDAO.findById(id)
-                .orElseThrow(() -> {
-                    LOGGER.error("Trainer with ID {} not found!", id);
-                    return new IllegalArgumentException("Trainer with ID " + id + " not found.");
-                });
+    @Override
+    public PasswordGenerator getPasswordGenerator() {
+        return passwordGenerator;
+    }
 
-        LOGGER.debug("Trainer found successfully: {}", trainer);
+    @Override
+    public UserService getUserService() {
+        return userService;
+    }
 
-        return trainer;
+    @Override
+    public Trainer buildProfile(User user, Trainer profile) {
+        return Trainer.builder()
+                .user(user)
+                .specialization(profile.getSpecialization())
+                .build();
+    }
+
+    @Override
+    public void updateProfileSpecificFields(Trainer existing, Trainer item) {
+        Optional.ofNullable(item.getSpecialization()).ifPresent(existing::setSpecialization);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Trainer> findUnassignedTrainers(Credentials authCredentials, String traineeUsername) {
+        LOGGER.debug(LOG_UNASSIGNED_SEARCH_START, traineeUsername);
+
+        authenticationService.authenticateCredentials(authCredentials);
+
+        List<Trainer> trainers = trainerDao.findUnassignedTrainers(traineeUsername);
+
+        LOGGER.debug(LOG_UNASSIGNED_SEARCH_SUCCESS, trainers.size(), traineeUsername);
+        return trainers;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Training> getTrainerTrainings(Credentials authCredentials,
+                                              String username,
+                                              LocalDate fromDate,
+                                              LocalDate toDate,
+                                              String traineeUsername) {
+        LOGGER.debug(LOG_QUERY_START,
+                username, fromDate, toDate, traineeUsername);
+
+        authenticationService.authenticateCredentials(authCredentials);
+
+        List<Training> trainings = trainerDao.getTrainerTrainings(username, fromDate, toDate, traineeUsername);
+
+        LOGGER.debug(LOG_QUERY_RESULTS, trainings.size(), username);
+        return trainings;
     }
 }

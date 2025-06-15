@@ -1,29 +1,45 @@
 package edu.epam.training.manager.domain;
 
+import edu.epam.training.manager.constants.DatabaseConstants;
 import edu.epam.training.manager.domain.base.UserEntity;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
-import java.util.UUID;
+import java.util.HashSet;
+import java.util.Set;
 
+@Entity
 @Data
-@EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Trainee extends UserEntity<UUID> {
+@EqualsAndHashCode(callSuper = true)
+public class Trainee extends UserEntity<Long> {
+    @Column(name = DatabaseConstants.COL_DATE_OF_BIRTH)
     private LocalDate dateOfBirth;
     private String address;
+
+    @ManyToMany
+    @JoinTable(
+            name = DatabaseConstants.TABLE_TRAINER_TRAINEE,
+            joinColumns = @JoinColumn(name = DatabaseConstants.COL_TRAINEE_ID),
+            inverseJoinColumns = @JoinColumn(name = DatabaseConstants.COL_TRAINER_ID)
+    )
+    private final Set<Trainer> trainers = new HashSet<>();
+
+    @OneToMany(mappedBy = DatabaseConstants.TABLE_TRAINEE, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private final Set<Training> trainings = new HashSet<>();
 
     @Override
     public String toString() {
         return "Trainee{" +
-                "id='" + getId() + '\'' +
-                ", firstName='" + getFirstName() + '\'' +
-                ", lastName='" + getLastName() + '\'' +
-                ", username='" + getUsername() + '\'' +
-                ", isActive=" + isActive() +
+                "userId='" + user.getId() + '\'' +
+                ", firstName='" + user.getFirstName() + '\'' +
+                ", lastName='" + user.getLastName() + '\'' +
+                ", username='" + user.getUsername() + '\'' +
+                ", isActive=" + user.isActive() +
                 ", dateOfBirth=" + dateOfBirth +
                 ", address='" + address + '\'' +
                 '}';

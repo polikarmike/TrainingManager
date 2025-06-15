@@ -1,20 +1,23 @@
 package edu.epam.training.manager.domain.base;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import edu.epam.training.manager.constants.DatabaseConstants;
+import edu.epam.training.manager.domain.User;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-@Data
+@MappedSuperclass
+@Setter
+@Getter
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 public abstract class UserEntity<ID> extends BaseEntity<ID> {
-    private String firstName;
-    private String lastName;
-    private String username;
-    private String password;
-
-    @JsonProperty("isActive")
-    private boolean isActive;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = DatabaseConstants.COL_USER_ID, unique = true)
+    protected User user;
 }

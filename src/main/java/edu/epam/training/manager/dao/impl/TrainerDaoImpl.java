@@ -1,33 +1,77 @@
 package edu.epam.training.manager.dao.impl;
 
-import edu.epam.training.manager.dao.TrainerDao;
-import edu.epam.training.manager.dao.base.AbstractCreateReadUpdateDao;
+import edu.epam.training.manager.constants.ParameterConstants;
+import edu.epam.training.manager.dao.interfaces.TrainerDao;
+import edu.epam.training.manager.dao.base.BaseDao;
+import edu.epam.training.manager.dao.HqlQueryConstants;
+import edu.epam.training.manager.dao.interfaces.helpers.TrainingQueryHelper;
 import edu.epam.training.manager.domain.Trainer;
-import edu.epam.training.manager.storage.UserStorage;
+import edu.epam.training.manager.domain.Training;
+import edu.epam.training.manager.exception.base.DaoException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-import java.util.UUID;
+import java.time.LocalDate;
+import java.util.List;
 
-public class TrainerDaoImpl extends AbstractCreateReadUpdateDao<Trainer, UserStorage<Trainer, UUID>, UUID>
-        implements TrainerDao<Trainer, UUID> {
-
+@Repository
+public class TrainerDaoImpl extends BaseDao<Trainer, Long> implements TrainerDao {
     private static final Logger LOGGER = LoggerFactory.getLogger(TrainerDaoImpl.class);
 
-    @Override
-    public Optional<Trainer> findByUsername(String username) {
-        LOGGER.debug("DAO TRAINER READ: Searching for trainer with username '{}'", username);
+    private static final String LOG_FIND_UNASSIGNED_START =
+            "{}: DAO FETCH - Searching unassigned trainers for trainee: {}";
+    private static final String LOG_FIND_UNASSIGNED_SUCCESS =
+            "{}: DAO FETCH - Found {} unassigned trainers for trainee: {}";
+    private static final String LOG_FIND_UNASSIGNED_ERROR =
+            "{}: DAO ERROR - Error fetching unassigned trainers for trainee {}: {}";
+    private static final String ERROR_FIND_UNASSIGNED_ERROR =
+            "DAO: Error fetching unassigned trainers";
 
-        Trainer result;
+    public TrainerDaoImpl(SessionFactory sessionFactory) {
+        super(Trainer.class, sessionFactory);
+    }
+
+    @Override
+    public List<Training> getTrainerTrainings(String username,
+                                               LocalDate fromDate,
+                                               LocalDate toDate,
+                                               String traineeUsername) {
+        return TrainingQueryHelper.fetchTrainings(
+                getSessionFactory(),
+                ParameterConstants.ROLE_TRAINER, username,
+                ParameterConstants.ROLE_TRAINEE, traineeUsername,
+                null,
+                fromDate, toDate
+        );
+    }
+
+    @Override
+    public List<Trainer> findUnassignedTrainers(String traineeUsername) {
+        String entityName = getEntityClass().getSimpleName();
+        LOGGER.debug(LOG_FIND_UNASSIGNED_START, entityName, traineeUsername);
 
         try {
-            result = getStorage().findByUsername(username);
-        } catch (Exception e) {
-            LOGGER.error("DAO TRAINER READ: Error searching for trainer with username '{}': {}", username, e.getMessage(), e);
-            throw e;
-        }
+            Session session = getSessionFactory().getCurrentSession();
+            List<Trainer> result = session.createQuery(
+                            HqlQueryConstants.HQL_TRAINER_FIND_UNASSIGNED_BY_TRAINEE,
+                            Trainer.class)
+                    .setParameter("username", traineeUsername)
+                    .getResultList();
 
-        return Optional.ofNullable(result);
+            LOGGER.debug(LOG_FIND_UNASSIGNED_SUCCESS, entityName, result.size(), traineeUsername);
+            return result;
+
+        } catch (Exception e) {
+            LOGGER.error(LOG_FIND_UNASSIGNED_ERROR,
+                    getEntityClass().getSimpleName(),
+                    traineeUsername,
+                    e.getMessage(),
+                    e);
+
+            throw new DaoException(ERROR_FIND_UNASSIGNED_ERROR, e);
+        }
     }
 }
